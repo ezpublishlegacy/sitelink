@@ -93,7 +93,7 @@
 					}
 				}
 			}
-			return $SiteLink->hyperlink($operatorValue,$Host);
+			return $SiteLink->hyperlink($operatorValue,$Match?$Host:false);
 		}
 		return $SiteLink->hyperlink($operatorValue);
 	}
