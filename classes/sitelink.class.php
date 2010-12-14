@@ -39,7 +39,7 @@ class SiteLink
 		}
 	}
 
-	function hyperlink($operatorValue=false, $host=false){
+	function hyperlink(&$operatorValue=false, $host=false){
 		if($this->urlComponents){
 			$SiteAccess=eZSiteAccess::current();
 			$CurrentHost=eZSys::hostname();
