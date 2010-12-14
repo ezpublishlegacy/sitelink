@@ -206,6 +206,17 @@ class SiteLink
 		return ($ClassArray && in_array($instance->objectNode->ClassIdentifier,$ClassArray));
 	}
 
+	static function hostMatchMapItems(){
+		$HostMatchMapItems=array();
+		if(($MapItems=SiteLink::configSetting('SiteAccessSettings','HostMatchMapItems','site.ini')) && is_array($MapItems)){
+			foreach($MapItems as $HostItem){
+				$HostItemArray=explode(';',$HostItem);
+				if(!array_key_exists($HostItemArray[1],$HostMatchMapItems)){$HostMatchMapItems[$HostItemArray[1]] = $HostItemArray[0];}
+			}
+		}
+		return $HostMatchMapItems;
+	}
+
 	static function isMultisite(&$object=false){
 		$isMultisite=in_array('host',explode(';',self::configSetting('SiteAccessSettings','MatchOrder','site.ini')));
 		if($object){
