@@ -17,20 +17,22 @@
 	}
 
 	function namedParameterList(){
-		return array('sitelink'=>array(
-						'quotes'=>array('type'=>'mixed', 'required'=>false, 'default'=>'yes'),
-						'absolute'=>array('type'=>'mixed', 'required'=>false, 'default'=>0)
-					),
-					'sitelink_path'=>array(
-						'absolute'=>array('type'=>'mixed', 'required'=>false, 'default'=>0)
-					));
+		return array(
+			'sitelink' => array(
+				'quotes' => array('type'=>'mixed', 'required'=>false, 'default'=>'yes'),
+				'absolute' => array('type'=>'mixed', 'required'=>false, 'default'=>0)
+				),
+			'sitelink_path'=>array(
+				'absolute'=>array('type'=>'mixed', 'required'=>false, 'default'=>0)
+				)
+			);
 	}
 
 	// Currently a URI in the form: content/view/full/43, will not be converted into a correct path and therefore node.
 	function modify(&$tpl, &$operatorName, &$operatorParameters, &$rootNamespace, &$currentNamespace, &$operatorValue, &$namedParameters){
 		switch($operatorName){
 			case 'sitelink':{
-				if (is_string($operatorValue) && strpos($operatorValue, 'http') === 0 ) return true;
+				if(is_string($operatorValue) && strpos($operatorValue, 'http')===0){return true;}
 				return self::sitelink($tpl, $operatorName, $operatorParameters, $rootNamespace, $currentNamespace, $operatorValue, $namedParameters);
 			}
 			case 'sitelink_path':{

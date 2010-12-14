@@ -12,15 +12,12 @@ class SiteLink
 	private $nodeID=false;
 	private $rootNodeID=false;
 
-	// Passing operatorValue by reference to the instance object does not work.
 	function __construct($operatorValue, $parameters){
-
 		$this->isMultisite=self::isMultisite($this);
 		$this->rootNodeID=self::configSetting('NodeSettings','RootNode','content.ini');
 		$this->operatorValue=empty($operatorValue)?(string)$this->rootNodeID:$operatorValue;
 		$this->parameters=$parameters;
 		$this->classSettings=false;
-
 		if(is_bool($parameters['absolute']) && $parameters['absolute']){
 			$this->forceAbsolute=true;
 		}else if(!$parameters['absolute'] && self::configSetting('OperatorSettings','ForceAbsoluteURL')==='enabled'){
@@ -28,7 +25,6 @@ class SiteLink
 		}else{
 			$this->forceAbsolute=false;
 		}
-
 		if(is_object($this->operatorValue)){
 			$this->objectNode=$this->operatorValue;
 			$this->urlComponents=self::URLComponents($this->objectNode->pathWithNames());
@@ -41,11 +37,9 @@ class SiteLink
 			$this->nodeID=$this->urlComponents['path']?eZURLAliasML::fetchNodeIDByPath($this->urlComponents['path']):false;
 			$this->normalize();
 		}
-
 	}
 
-	// Passing operatorValue by reference to the instance object does not work.
-	function hyperlink(&$operatorValue=false, $host=false){
+	function hyperlink($operatorValue=false, $host=false){
 		if($this->urlComponents){
 			$SiteAccess=eZSiteAccess::current();
 			$CurrentHost=eZSys::hostname();
@@ -71,7 +65,6 @@ class SiteLink
 			if($this->classSettings&&isset($this->classSettings['SelfLinking'])&&$this->classSettings['SelfLinking']=='disabled'){
 				if(strripos(str_replace($urlComponents['scheme'].'://'.$urlComponents['host'],'',$operatorValue),'/'.$this->objectNode->urlAlias())===0){$operatorValue='';}
 			}
-
 		}
 		if($this->parameters['quotes']=='yes'){$operatorValue = "\"$operatorValue\"";}
 		return true;
@@ -132,7 +125,6 @@ class SiteLink
 				$this->nodeID=eZURLAliasML::fetchNodeIDByPath($this->urlComponents['path']);
 				return true;
 			}
-			
 		}elseif(!$this->nodeID && is_numeric($this->operatorValue)){
 			$this->nodeID=$this->operatorValue;
 			return true;
