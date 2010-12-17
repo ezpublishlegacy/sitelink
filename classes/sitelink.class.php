@@ -15,7 +15,7 @@ class SiteLink
 	function __construct($operatorValue, $parameters){
 		$this->isMultisite=self::isMultisite($this);
 		$this->currentHost=eZSys::hostname();
-		$this->siteAccess=isset($GLOBALS['eZCurrentAccess']['name'])?$GLOBALS['eZCurrentAccess']['name']:false;
+		$this->siteAccess=isset($GLOBALS['eZCurrentAccess']['name'])?$GLOBALS['eZCurrentAccess']:false;
 		$this->rootNodeID=self::configSetting('NodeSettings','RootNode','content.ini');
 		$this->operatorValue=empty($operatorValue)?(string)$this->rootNodeID:$operatorValue;
 		$this->parameters=$parameters;
@@ -47,7 +47,7 @@ class SiteLink
 					'host'=>$host?$host:$this->urlComponents['host'],
 					'path'=>preg_replace('/^([^\/].*)|^$/','/$1',preg_replace('/^'.str_replace('/','\\/',$this->pathPrefix).'\/*/','/',$this->urlComponents['path']))
 				));
-			if($this->siteAccess && count($this->siteAccess['uri_part'])){
+			if($this->siteAccess && isset($this->siteAccess['uri_part']) && count($this->siteAccess['uri_part'])){
 				$urlComponents['path']='/'.implode('/',$this->siteAccess['uri_part']).$urlComponents['path'];
 			}
 			if(($urlComponents['host'] && $urlComponents['host']!=$this->currentHost) || $this->forceAbsolute){
