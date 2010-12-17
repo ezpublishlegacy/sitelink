@@ -72,7 +72,7 @@
 		if($SiteLink->isMultisite){
 			$Match=false;
 			$PathArray = $SiteLink->objectNode->pathArray();
-			foreach(SiteLink::hostMatchMapItems() as $Name=>$Host){
+			foreach(SiteLink::hostMatchMapItems($SiteLink) as $Name=>$Host){
 				$HostRootNode = SiteLink::configSetting('NodeSettings','RootNode','content.ini',"settings/siteaccess/$Name",true);
 				if(array_search($HostRootNode,$PathArray)!==false){
 					foreach(array_reverse($PathArray) as $PathNodeID){

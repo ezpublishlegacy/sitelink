@@ -14,6 +14,8 @@ class SiteLink
 
 	function __construct($operatorValue, $parameters){
 		$this->isMultisite=self::isMultisite($this);
+		$this->currentHost=eZSys::hostname();
+		$this->siteAccess=eZSiteAccess::current();
 		$this->rootNodeID=self::configSetting('NodeSettings','RootNode','content.ini');
 		$this->operatorValue=empty($operatorValue)?(string)$this->rootNodeID:$operatorValue;
 		$this->parameters=$parameters;
@@ -41,17 +43,15 @@ class SiteLink
 
 	function hyperlink(&$operatorValue=false, $host=false){
 		if($this->urlComponents){
-			$SiteAccess=eZSiteAccess::current();
-			$CurrentHost=eZSys::hostname();
 			$urlComponents = array_merge($this->urlComponents,array(
 					'host'=>$host?$host:$this->urlComponents['host'],
 					'path'=>preg_replace('/^([^\/].*)|^$/','/$1',preg_replace('/^'.str_replace('/','\\/',$this->pathPrefix).'\/*/','/',$this->urlComponents['path']))
 				));
-			if(count($SiteAccess['uri_part'])){
-				$urlComponents['path']='/'.implode('/',$SiteAccess['uri_part']).$urlComponents['path'];
+			if($this->siteAccess && count($this->siteAccess['uri_part'])){
+				$urlComponents['path']='/'.implode('/',$this->siteAccess['uri_part']).$urlComponents['path'];
 			}
-			if(($urlComponents['host'] && $urlComponents['host']!=$CurrentHost) || $this->forceAbsolute){
-				$operatorValue=$urlComponents['scheme'].'://'.($urlComponents['host']?$urlComponents['host']:$CurrentHost).$urlComponents['path'];
+			if(($urlComponents['host'] && $urlComponents['host']!=$this->currentHost) || $this->forceAbsolute){
+				$operatorValue=$urlComponents['scheme'].'://'.($urlComponents['host']?$urlComponents['host']:$this->currentHost).$urlComponents['path'];
 			}else{
 				$operatorValue=$urlComponents['path'];
 			}
@@ -206,12 +206,14 @@ class SiteLink
 		return ($ClassArray && in_array($instance->objectNode->ClassIdentifier,$ClassArray));
 	}
 
-	static function hostMatchMapItems(){
+	static function hostMatchMapItems($object=false){
 		$HostMatchMapItems=array();
 		if(($MapItems=SiteLink::configSetting('SiteAccessSettings','HostMatchMapItems','site.ini')) && is_array($MapItems)){
 			foreach($MapItems as $HostItem){
 				$HostItemArray=explode(';',$HostItem);
-				if(!array_key_exists($HostItemArray[1],$HostMatchMapItems)){$HostMatchMapItems[$HostItemArray[1]] = $HostItemArray[0];}
+				if(!array_key_exists($HostItemArray[1],$HostMatchMapItems) || ($object && $object->currentHost==$HostItemArray[0] && $object->siteAccess['name']==$HostItemArray[1])){
+					$HostMatchMapItems[$HostItemArray[1]] = $HostItemArray[0];
+				}
 			}
 		}
 		return $HostMatchMapItems;
