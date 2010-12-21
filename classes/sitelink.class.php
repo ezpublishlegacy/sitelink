@@ -33,8 +33,16 @@ class SiteLink
 			$this->nodeID=$this->objectNode->NodeID;
 		}else{
 			$this->urlComponents=self::URLComponents($this->operatorValue);
-			if($this->pathPrefix && $this->urlComponents['path'] && stripos($this->urlComponents['path'],$this->pathPrefix)===false){
-				$this->urlComponents['path']=$this->pathPrefix.'/'.$this->urlComponents['path'];
+			if($this->urlComponents['path']){
+				foreach(self::pathPrefixList() as $PathPrefix){
+					if(stripos($this->urlComponents['path'],$PathPrefix)!==false){
+						$this->pathPrefix=$PathPrefix;
+						break;
+					}
+				}
+				if(stripos($this->urlComponents['path'],$this->pathPrefix)===false){
+					$this->urlComponents['path']=$this->pathPrefix.'/'.$this->urlComponents['path'];
+				}
 			}
 			$this->nodeID=$this->urlComponents['path']?eZURLAliasML::fetchNodeIDByPath($this->urlComponents['path']):false;
 			$this->normalize();
@@ -225,6 +233,14 @@ class SiteLink
 			$object->pathPrefix=self::configSetting('SiteAccessSettings','PathPrefix','site.ini');
 		}
 		return $isMultisite;
+	}
+
+	static function pathPrefixList(){
+		$PathPrefixList=array();
+		foreach(eZSiteAccess::siteAccessList() as $key=>$value){
+			$PathPrefixList[]=self::configSetting('SiteAccessSettings','PathPrefix','site.ini','settings/siteaccess/'.$value['name'],true);
+		}
+		return $PathPrefixList;
 	}
 
 	// Currently a URI in the form: content/view/full/43, will not be converted into a correct path.
