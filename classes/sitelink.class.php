@@ -33,6 +33,9 @@ class SiteLink
 			$this->nodeID=$this->objectNode->NodeID;
 		}else{
 			$this->urlComponents=self::URLComponents($this->operatorValue);
+			if(stripos($operatorValue,'rss') !== false){
+				$this->urlComponents['host']=parse_url(eZRSSExport::fetchByName(substr($operatorValue,strrpos($operatorValue,'/')+1))->URL,PHP_URL_HOST);
+			}
 			if($this->urlComponents['path']){
 				foreach(self::pathPrefixList() as $PathPrefix){
 					if(stripos($this->urlComponents['path'],$PathPrefix)!==false){
