@@ -74,7 +74,7 @@ class SiteLink
 			if($urlComponents['query']){$operatorValue.='?'.$urlComponents['query'];}
 			if($urlComponents['fragment']){$operatorValue.='#'.$urlComponents['fragment'];}
 			if($this->classSettings&&isset($this->classSettings['SelfLinking'])&&$this->classSettings['SelfLinking']=='disabled'){
-				if(strripos(str_replace($urlComponents['scheme'].'://'.$urlComponents['host'],'',$operatorValue),'/'.$this->objectNode->urlAlias())===0){$operatorValue='';}
+				if(strripos(str_replace($urlComponents['scheme'].'://'.$urlComponents['host'],'',$operatorValue),'/'.$this->objectNode->urlAlias())===0 && $this->currentHost == $urlComponents['host']){$operatorValue='';}
 			}
 		}
 		if($this->parameters['quotes']=='yes'){$operatorValue = "\"$operatorValue\"";}
