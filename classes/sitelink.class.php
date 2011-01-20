@@ -36,17 +36,6 @@ class SiteLink
 			if(stripos($operatorValue,'rss') !== false){
 				$this->urlComponents['host']=parse_url(eZRSSExport::fetchByName(substr($operatorValue,strrpos($operatorValue,'/')+1))->URL,PHP_URL_HOST);
 			}
-			if($this->urlComponents['path']){
-				foreach(self::pathPrefixList() as $PathPrefix){
-					if(stripos($this->urlComponents['path'],$PathPrefix)!==false){
-						$this->pathPrefix=$PathPrefix;
-						break;
-					}
-				}
-				if(stripos($this->urlComponents['path'],$this->pathPrefix)===false){
-					$this->urlComponents['path']=$this->pathPrefix.'/'.$this->urlComponents['path'];
-				}
-			}
 			$this->nodeID=$this->urlComponents['path']?eZURLAliasML::fetchNodeIDByPath($this->urlComponents['path']):false;
 			$this->normalize();
 		}
@@ -132,8 +121,17 @@ class SiteLink
 	function normalize(){
 		if($this->urlComponents && !$this->nodeID){
 			if($this->isMultisite && $this->urlComponents['path'] && !$this->urlComponents['host']){
-				$this->urlComponents['path']=$this->pathPrefix.'/'.$this->urlComponents['path'];
-				$this->nodeID=eZURLAliasML::fetchNodeIDByPath($this->urlComponents['path']);
+				if($this->urlComponents['path']){
+					foreach(self::pathPrefixList() as $PathPrefix){
+						if(stripos($this->urlComponents['path'],$PathPrefix)!==false){
+							$this->pathPrefix=$PathPrefix;
+							break;
+						}
+					}
+					if(stripos($this->urlComponents['path'],$this->pathPrefix)===false){
+						$this->urlComponents['path']=$this->pathPrefix.'/'.$this->urlComponents['path'];
+					}
+				}
 				return true;
 			}
 		}elseif(!$this->nodeID && is_numeric($this->operatorValue)){
