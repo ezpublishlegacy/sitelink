@@ -48,7 +48,9 @@ class SiteLink
 					'path'=>preg_replace('/^([^\/].*)|^$/','/$1',preg_replace('/^'.str_replace('/','\\/',$this->pathPrefix).'\/*/','/',$this->urlComponents['path']))
 				));
 			if($this->siteAccess && isset($this->siteAccess['uri_part']) && count($this->siteAccess['uri_part']) && !$urlComponents['host']){
-				$urlComponents['path']='/'.implode('/',$this->siteAccess['uri_part']).$urlComponents['path'];
+				if(stripos($urlComponents['path'],implode('/',$this->siteAccess['uri_part']))===false){
+					$urlComponents['path']='/'.implode('/',$this->siteAccess['uri_part']).$urlComponents['path'];
+				}
 			}
 			if(($urlComponents['host'] && $urlComponents['host']!=$this->currentHost) || $this->forceAbsolute){
 				$operatorValue=$urlComponents['scheme'].'://'.($urlComponents['host']?$urlComponents['host']:$this->currentHost).$urlComponents['path'];
