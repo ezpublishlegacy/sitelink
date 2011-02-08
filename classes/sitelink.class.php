@@ -47,7 +47,7 @@ class SiteLink
 					'host'=>$host?$host:$this->urlComponents['host'],
 					'path'=>preg_replace('/^([^\/].*)|^$/','/$1',preg_replace('/^'.str_replace('/','\\/',$this->pathPrefix).'\/*/','/',$this->urlComponents['path']))
 				));
-			if($this->siteAccess && isset($this->siteAccess['uri_part']) && count($this->siteAccess['uri_part'])){
+			if($this->siteAccess && isset($this->siteAccess['uri_part']) && count($this->siteAccess['uri_part']) && !$urlComponents['host']){
 				$urlComponents['path']='/'.implode('/',$this->siteAccess['uri_part']).$urlComponents['path'];
 			}
 			if(($urlComponents['host'] && $urlComponents['host']!=$this->currentHost) || $this->forceAbsolute){
@@ -112,7 +112,7 @@ class SiteLink
 				}
 			}while(!$NodeLink);
 			$this->operatorValue = $NodeLink;
-			if($this->urlComponents){$this->urlComponents['path']=$NodeLink;}
+			if($this->urlComponents){$this->urlComponents['path']=$NodeLink;}	// may not be needed
 			return array('error'=>false,'result'=>$NodeLink);
 		}
 		return array('error'=>true,'result'=>false);
