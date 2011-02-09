@@ -28,7 +28,7 @@ class SiteLink
 			$this->forceAbsolute=false;
 		}
 		if(is_object($this->operatorValue)){
-			$this->objectNode=$this->operatorValue;
+			$this->objectNode=$this->objectNode($this->operatorValue);
 			$this->urlComponents=self::URLComponents($this->objectNode->pathWithNames());
 			$this->nodeID=$this->objectNode->NodeID;
 		}else{
@@ -141,6 +141,16 @@ class SiteLink
 			return true;
 		}
 		return false;
+	}
+
+	function objectNode($object){
+		if(get_class($object)=='eZContentObject'){
+			foreach($object->assignedNodes() as $node){
+				if(in_array($this->rootNodeID,$node->pathArray())){return $node;}
+			}
+			return $object->mainNode();
+		}
+		return $object;
 	}
 
 	function path(){
