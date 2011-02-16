@@ -8,7 +8,7 @@ interface SiteLinkDataTypeInterface
 		* @param object $Attribute
 		* @param string $LinkType
 	*/
-	public function modify($Attribute,$LinkType);
+	public function modify($Attribute,$LinkType,$SiteLink);
 }
 
 ?>

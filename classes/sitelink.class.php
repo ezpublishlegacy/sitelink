@@ -106,7 +106,7 @@ class SiteLink
 					$SelectedDataTypeClass=array_key_exists($AttributeDataType,$DataTypeClassList)?$DataTypeClassList[$AttributeDataType]:false;
 				}
 				if($SelectedDataTypeClass && class_exists($SelectedDataTypeClass)){
-					$NodeLink=call_user_func(array(new $SelectedDataTypeClass(),'modify'),$Attribute,$LoopSettings['LinkType']);
+					$NodeLink=call_user_func(array(new $SelectedDataTypeClass(),'modify'),$Attribute,$LoopSettings['LinkType'],$this);
 					unset($LoopSettings);
 				}else{
 					eZDebug::writeError("$SelectedDataTypeClass class does not exist for attribute typeof ".$Attribute->attribute('data_type_string').".",'SiteLink Operator: PHP Class Error');
