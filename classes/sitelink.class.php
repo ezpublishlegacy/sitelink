@@ -13,32 +13,41 @@ class SiteLink
 	private $rootNodeID=false;
 
 	function __construct($operatorValue, $parameters){
+		self::parseParameters($this, $parameters);
+
 		$this->isMultisite=self::isMultisite($this);
 		$this->currentHost=eZSys::hostname();
 		$this->siteAccess=isset($GLOBALS['eZCurrentAccess']['name'])?$GLOBALS['eZCurrentAccess']:false;
-		$this->rootNodeID=self::configSetting('NodeSettings','RootNode','content.ini');
-		$this->operatorValue=empty($operatorValue)?(string)$this->rootNodeID:$operatorValue;
-		$this->parameters=$parameters;
 		$this->classSettings=false;
-		if(is_bool($parameters['absolute']) && $parameters['absolute']){
-			$this->forceAbsolute=true;
-		}else if(!$parameters['absolute'] && self::configSetting('OperatorSettings','ForceAbsoluteURL')==='enabled'){
-			$this->forceAbsolute=true;
-		}else{
-			$this->forceAbsolute=false;
-		}
+
+		$this->rootNodeID=self::configSetting('NodeSettings','RootNode','content.ini');
+		$this->operatorValue=empty($operatorValue)?(int)$this->rootNodeID:$operatorValue;
+
 		if(is_object($this->operatorValue)){
-			$this->objectNode=$this->objectNode($this->operatorValue);
-			$this->urlComponents=self::URLComponents($this->objectNode->pathWithNames());
+			$this->objectNode=$this->findObjectNode($this->operatorValue);
 			$this->nodeID=$this->objectNode->NodeID;
+			$this->urlComponents=self::URLComponents($this->objectNode->pathWithNames());
+			$this->operatorValue=serialize($this->operatorValue);
 		}else{
 			$this->urlComponents=self::URLComponents($this->operatorValue);
 			if(stripos($operatorValue,'rss/') !== false){
 				$this->urlComponents['host']=parse_url(eZRSSExport::fetchByName(substr($operatorValue,strrpos($operatorValue,'/')+1))->URL,PHP_URL_HOST);
 			}
-			$this->nodeID=$this->urlComponents['path']?eZURLAliasML::fetchNodeIDByPath($this->urlComponents['path']):false;
-			$this->normalize();
+			if($this->normalize()){
+ 				$this->nodeID=$this->urlComponents['path']?eZURLAliasML::fetchNodeIDByPath($this->urlComponents['path']):false;
+			}
 		}
+
+	}
+
+	function findObjectNode($object){
+		if(get_class($object)=='eZContentObject'){
+			foreach($object->assignedNodes() as $node){
+				if(in_array($this->rootNodeID,$node->pathArray())){return $node;}
+			}
+			return $object->mainNode();
+		}
+		return $object;
 	}
 
 	function hyperlink(&$operatorValue=false, $host=false){
@@ -52,7 +61,7 @@ class SiteLink
 					$urlComponents['path']='/'.implode('/',$this->siteAccess['uri_part']).$urlComponents['path'];
 				}
 			}
-			if(($urlComponents['host'] && $urlComponents['host']!=$this->currentHost) || $this->forceAbsolute){
+			if(($urlComponents['host'] && $urlComponents['host']!=$this->currentHost) || $this->parameters['absolute']){
 				$operatorValue=$urlComponents['scheme'].'://'.($urlComponents['host']?$urlComponents['host']:$this->currentHost).$urlComponents['path'];
 			}else{
 				$operatorValue=$urlComponents['path'];
@@ -65,42 +74,43 @@ class SiteLink
 			if($urlComponents['query']){$operatorValue.='?'.$urlComponents['query'];}
 			if($urlComponents['fragment']){$operatorValue.='#'.$urlComponents['fragment'];}
 			if($this->classSettings&&isset($this->classSettings['SelfLinking'])&&$this->classSettings['SelfLinking']=='disabled'){
-				if(strripos(str_replace($urlComponents['scheme'].'://'.$urlComponents['host'],'',$operatorValue),'/'.$this->objectNode->urlAlias())===0 && $this->currentHost == $urlComponents['host']){$operatorValue='';}
+				if(strripos(str_replace($urlComponents['scheme'].'://'.$urlComponents['host'],'',$operatorValue),'/'.$this->objectNode->urlAlias())===0 && (!$urlComponents['host'] || $this->currentHost==$urlComponents['host'])){$operatorValue='';}
 			}
 		}
-		if($this->parameters['quotes']=='yes'){$operatorValue = "\"$operatorValue\"";}
+		if($this->parameters['quotes']){$operatorValue="\"$operatorValue\"";}
 		return true;
 	}
 
-	function nodeLink($classSettings){
-		if(isset($classSettings['LinkTypeList']) && $classSettings['LinkTypeList']){
+	function nodeLink(){
+		$ClassSettings=$this->classSettings;
+		if(isset($ClassSettings['LinkTypeList']) && $ClassSettings['LinkTypeList']){
 			$DataMap=$this->objectNode->dataMap();
 			$DataTypeClassList=self::configSetting('DataTypeSettings','ClassList');
-			if(array_key_exists($classSettings['DefaultLinkType'],$classSettings['LinkTypeList'])){
+			if(array_key_exists($ClassSettings['DefaultLinkType'],$ClassSettings['LinkTypeList'])){
 				$LoopSettings = array(
-					'LinkType'=>$classSettings['DefaultLinkType'],
-					'AttributeIdentifier'=>$classSettings['LinkTypeList'][$classSettings['DefaultLinkType']]
+					'LinkType'=>$ClassSettings['DefaultLinkType'],
+					'AttributeIdentifier'=>$ClassSettings['LinkTypeList'][$ClassSettings['DefaultLinkType']]
 				);
-				unset($classSettings['LinkTypeList'][$LoopSettings['LinkType']]);
+				unset($ClassSettings['LinkTypeList'][$LoopSettings['LinkType']]);
 			}
 			do{
 				if(!isset($LoopSettings)){
 					$LoopSettings= array(
-						'LinkType'=>key($classSettings['LinkTypeList']),
-						'AttributeIdentifier'=>current($classSettings['LinkTypeList'])
+						'LinkType'=>key($ClassSettings['LinkTypeList']),
+						'AttributeIdentifier'=>current($ClassSettings['LinkTypeList'])
 					);
-					unset($classSettings['LinkTypeList'][$LoopSettings['LinkType']]);
+					unset($ClassSettings['LinkTypeList'][$LoopSettings['LinkType']]);
 				}
 				if(!$LoopSettings['AttributeIdentifier']){
-					return array('error'=>false,'result'=>false);
+					return array('error'=>false,'result'=>false,'message'=>'AttributeIdentifier can not be determined.');
 				}
 				$Attribute = array_key_exists($LoopSettings['AttributeIdentifier'],$DataMap)?$DataMap[$LoopSettings['AttributeIdentifier']]:false;
 				if(!$Attribute){
 					eZDebug::writeError($LoopSettings['AttributeIdentifier']." does not exist.",'SiteLink Operator: PHP Class Error');
-					return array('error'=>true,'result'=>false);
+					return array('error'=>true,'result'=>false,'message'=>$LoopSettings['AttributeIdentifier']." does not exist.");
 				}
-				if($classSettings['DataTypeClass']){
-					$SelectedDataTypeClass=$classSettings['DataTypeClass'];
+				if($ClassSettings['DataTypeClass']){
+					$SelectedDataTypeClass=$ClassSettings['DataTypeClass'];
 				}else{
 					$AttributeDataType=$Attribute->attribute('data_type_string');
 					$SelectedDataTypeClass=array_key_exists($AttributeDataType,$DataTypeClassList)?$DataTypeClassList[$AttributeDataType]:false;
@@ -110,14 +120,12 @@ class SiteLink
 					unset($LoopSettings);
 				}else{
 					eZDebug::writeError("$SelectedDataTypeClass class does not exist for attribute typeof ".$Attribute->attribute('data_type_string').".",'SiteLink Operator: PHP Class Error');
-					return array('error'=>true,'result'=>false);
+					return array('error'=>true,'result'=>false,'message'=>"$SelectedDataTypeClass class does not exist for attribute typeof ".$Attribute->attribute('data_type_string').".");
 				}
-			}while(!$NodeLink);
-			$this->operatorValue = $NodeLink;
-			if($this->urlComponents){$this->urlComponents['path']=$NodeLink;}	// may not be needed
-			return array('error'=>false,'result'=>$NodeLink);
+			}while(!$NodeLink && current($ClassSettings['LinkTypeList']));
+			return array('error'=>false,'result'=>$NodeLink,'message'=>false);
 		}
-		return array('error'=>true,'result'=>false);
+		return array('error'=>true,'result'=>false,'message'=>'Unable to find a valid NodeLink');
 	}
 
 	function normalize(){
@@ -136,27 +144,14 @@ class SiteLink
 				}
 				return true;
 			}
-		}elseif(!$this->nodeID && is_numeric($this->operatorValue)){
-			$this->nodeID=$this->operatorValue;
-			return true;
 		}
 		return false;
-	}
-
-	function objectNode($object){
-		if(get_class($object)=='eZContentObject'){
-			foreach($object->assignedNodes() as $node){
-				if(in_array($this->rootNodeID,$node->pathArray())){return $node;}
-			}
-			return $object->mainNode();
-		}
-		return $object;
 	}
 
 	function path(){
 		$PathArray = $this->objectNode->pathArray();
 		$SiteLinkOperator=new SiteLinkOperator();
-		$namedParameters = array('quotes'=>'no','absolute'=>$this->parameters['absolute']);
+		$namedParameters = array('parameters'=>false,'absolute'=>$this->parameters['absolute']);
 		$operatorName='sitelink';
 		foreach(array_reverse($PathArray) as $key=>$value){
 			$NodeObject = eZContentObjectTreeNode::fetch($value);
@@ -176,24 +171,17 @@ class SiteLink
 		return array_reverse(array_slice($PathArray,0,++$key));
 	}
 
-	function relink(){
-		$SiteLinkOperator=new SiteLinkOperator();
-		$namedParameters = array('quotes'=>'no','absolute'=>$this->parameters['absolute']);
-		$operatorName='sitelink';
-		$SiteLinkOperator->modify($tpl, $operatorName, $operatorParameters, $rootNamespace, $currentNamespace, $this->operatorValue, $namedParameters);
-		$this->urlComponents = self::URLComponents($this->operatorValue);
-		return 'true';
-	}
-
 	function setObjectNode(){
 		if($this->nodeID){
-			$this->objectNode=eZContentObjectTreeNode::fetch($this->nodeID);
+			$this->objectNode=$this->findObjectNode(eZContentObjectTreeNode::fetch($this->nodeID)->object());
 			if(!$this->urlComponents){
 				$pathWithNames=$this->objectNode->pathWithNames();
 				$this->urlComponents=self::URLComponents((empty($pathWithNames) && $this->isMultisite)?$this->pathPrefix:$pathWithNames);
-				$this->operatorValue=$this->urlComponents['path'];
 			}
 			return true;
+		}elseif(is_numeric($this->operatorValue) || is_integer($this->operatorValue)){
+			$this->nodeID=(int)$this->operatorValue;
+			return $this->setObjectNode();
 		}
 		return false;
 	}
@@ -258,22 +246,37 @@ class SiteLink
 
 	// Currently a URI in the form: content/view/full/43, will not be converted into a correct path.
 	static function URLComponents($value){
-		if(is_string($value) && !is_numeric($value) && parse_url($value,PHP_URL_SCHEME)!='mailto'){
-			$default_url_array = array('scheme'=>'http','host'=>false,'user'=>false,'pass'=>false,'path'=>false,'query'=>false,'fragment'=>false);
-			if(preg_match_all(self::ANCHOR_REGEXP,$value,$matches)){$value = ltrim(eZSys::requestURI().$value,'/');}
-			$parsedURL = array_merge($default_url_array,parse_url($value));
-			if($parsedURL['path']){
-				$uri=eZURI::instance($parsedURL['path']);
-				$parsedURL['path']=$uri->uriString();
-				$parsedURL['user_parameters']=count($uri->userParameters())?$uri->userParameters():false;
+		if(is_string($value) && !is_numeric($value) && !parse_url($value,PHP_URL_SCHEME)){
+			$DefaultURL = array('scheme'=>'http','host'=>false,'user'=>false,'pass'=>false,'path'=>false,'query'=>false,'fragment'=>false);
+			if(preg_match_all(self::ANCHOR_REGEXP,$value,$Matches)){$value = ltrim(eZSys::requestURI().$value,'/');}
+			$ParsedURL = array_merge($DefaultURL,parse_url($value));
+			if($ParsedURL['path']){
+				$URI=eZURI::instance($ParsedURL['path']);
+				$ParsedURL['path']=$URI->uriString();
+				$ParsedURL['user_parameters']=count($URI->userParameters())?$URI->userParameters():false;
 				// Fixes bug where when no scheme is specified the host is retured as a path.
-				if(!$parsedURL['host'] && $matchValue=preg_match_all(self::HOST_REGEXP,$parsedURL['path'],$matches)){
-					return array_merge($default_url_array,parse_url('http://'.$parsedURL['path']));
+				if(!$ParsedURL['host'] && $MatchValue=preg_match_all(self::HOST_REGEXP,$ParsedURL['path'],$Matches)){
+					return array_merge($DefaultURL,parse_url('http://'.$ParsedURL['path']));
 				}
 			}
-			return $parsedURL;
+			return $ParsedURL;
 		}
 		return false;
+	}
+
+	// enable ForceAbsoluteURL setting to be functional
+	private static function parseParameters(&$object, $parameters){
+		if(is_array($parameters['parameters'])){
+			foreach($parameters['parameters'] as $key=>$value){
+				$parameters['parameters'][$key]=((is_string($value)&&in_array($key,array('quotes','absolute')))?(($value=='yes')?true:false):$value);
+			}
+		}else{
+			$parameters['parameters']=array('quotes'=>(is_string($parameters['parameters'])?(($parameters['parameters']=='yes')?true:false):$parameters['parameters']));
+		}
+		if(isset($parameters['absolute']) && !isset($parameters['parameters']['absolute'])){
+			$parameters['parameters']['absolute']=(bool)$parameters['absolute'];
+		}
+		$object->parameters=array_merge(SiteLinkOperator::operatorDefaults('sitelink'),$parameters['parameters']);
 	}
 
 }

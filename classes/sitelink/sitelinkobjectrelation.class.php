@@ -4,7 +4,10 @@ class SiteLinkObjectRelation implements SiteLinkDataTypeInterface
 {
 	public function modify($Attribute,$LinkType,$SiteLink){
 		if($Attribute->hasContent()){
-			return $Attribute->content()->mainNode()->urlAlias();
+			$OperatorValue=$Attribute->content();
+			$NamedParameters=array('parameters'=>false,'absolute'=>true);
+			SiteLinkOperator::sitelink($OperatorValue,$NamedParameters);
+			return $OperatorValue;
 		}
 		return false;
 	}

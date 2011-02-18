@@ -19,11 +19,11 @@
 	function namedParameterList(){
 		return array(
 			'sitelink' => array(
-				'quotes' => array('type'=>'mixed', 'required'=>false, 'default'=>'yes'),
-				'absolute' => array('type'=>'mixed', 'required'=>false, 'default'=>0)
+				'parameters' => array('type'=>'mixed', 'required'=>false, 'default'=>true),
+				'absolute' => array('type'=>'mixed', 'required'=>false, 'default'=>false)
 				),
 			'sitelink_path'=>array(
-				'absolute'=>array('type'=>'mixed', 'required'=>false, 'default'=>0)
+				'absolute'=>array('type'=>'mixed', 'required'=>false, 'default'=>false)
 				)
 			);
 	}
@@ -32,43 +32,60 @@
 	function modify(&$tpl, &$operatorName, &$operatorParameters, &$rootNamespace, &$currentNamespace, &$operatorValue, &$namedParameters){
 		switch($operatorName){
 			case 'sitelink':{
-				if(is_string($operatorValue) && strpos($operatorValue, 'http')===0){return true;}
-				return self::sitelink($tpl, $operatorName, $operatorParameters, $rootNamespace, $currentNamespace, $operatorValue, $namedParameters);
+				return self::sitelink($operatorValue, $namedParameters);
 			}
 			case 'sitelink_path':{
-				return self::sitelink_path($tpl, $operatorName, $operatorParameters, $rootNamespace, $currentNamespace, $operatorValue, $namedParameters);
+				return self::sitelink_path($operatorValue, $namedParameters);
 			}
 		}
 		return false;
 	}
 
-	private static function sitelink_path(&$tpl, &$operatorName, &$operatorParameters, &$rootNamespace, &$currentNamespace, &$operatorValue, &$namedParameters){
-		$SiteLink = new SiteLink($operatorValue,$namedParameters);
-		if(!isset($SiteLink->objectNode)){
-			if(!$SiteLink->setObjectNode()){
-				return false;
-			}
-		}
-		$operatorValue = $SiteLink->path();
-		return true;
+	static function operatorDefaults($operatorName=false){
+		$defaults=array(
+			'sitelink'=>array(
+				'quotes'=>true,
+				'absolute'=>false,
+				'hash'=>false,
+				'query'=>false
+			),
+			'sitelink_path'=>array(
+				'absolute'=>false
+			)
+		);
+		return $operatorName?$defaults[$operatorName]:$defaults;
 	}
 
-	private static function sitelink(&$tpl, &$operatorName, &$operatorParameters, &$rootNamespace, &$currentNamespace, &$operatorValue, &$namedParameters){
+/*
+	sitelink()
+	sitelink(boolean_value)
+	sitelink(boolean_value,boolean_value)
+	sitelink(parameters)
+
+	boolean_value:
+		['yes'|'no'], [1|0], [true|false]
+	parameters:
+		[quotes, absolute, hash, query]
+*/
+	static function sitelink(&$operatorValue, &$namedParameters){
 		$SiteLink = new SiteLink($operatorValue,$namedParameters);
 		if(!isset($SiteLink->objectNode)){
 			if(!$SiteLink->setObjectNode()){
 				return $SiteLink->hyperlink($operatorValue);
 			}
 		}
+
 		if(SiteLink::inClassArray($SiteLink)){
 			$SiteLink->classSettings = SiteLink::classSettings($SiteLink->objectNode->ClassIdentifier);
-			$NodeLink=$SiteLink->nodeLink($SiteLink->classSettings);
-			if($NodeLink['error']){
-				return false;
+			$NodeLink=$SiteLink->nodeLink();
+			if(!$NodeLink['error'] && $NodeLink['result']){
+				$RelinkNamedParameters=array('parameters'=>false,'absolute'=>true);
+				$operatorValue=$NodeLink['result'];
+				return self::sitelink($operatorValue, $RelinkNamedParameters);
 			}
-			if($NodeLink['result']){$SiteLink->relink();}
 			return $SiteLink->hyperlink($operatorValue);
 		}
+
 		if($SiteLink->isMultisite){
 			$Match=false;
 			$PathArray = $SiteLink->objectNode->pathArray();
@@ -95,8 +112,21 @@
 			}
 			return $SiteLink->hyperlink($operatorValue,$Match?$Host:false);
 		}
+
 		return $SiteLink->hyperlink($operatorValue);
 	}
+
+	static function sitelink_path(&$operatorValue, &$namedParameters){
+		$SiteLink = new SiteLink($operatorValue,array_merge($namedParameters,array('parameters'=>'false')));
+		if(!isset($SiteLink->objectNode)){
+			if(!$SiteLink->setObjectNode()){
+				return false;
+			}
+		}
+		$operatorValue = $SiteLink->path();
+		return true;
+	}
+
 }
 
 ?>
