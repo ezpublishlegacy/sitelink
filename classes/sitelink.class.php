@@ -39,6 +39,29 @@ class SiteLink
 		}
 
 	}
+	function debug($message, $label, $level=eZDebug::LEVEL_DEBUG){
+		if(isset($this->parameters['debug']) && $this->parameters['debug']){
+			switch($level){
+				case eZDebug::LEVEL_NOTICE:{
+					eZDebug::writeNotice($message,$label);
+				}
+				case eZDebug::LEVEL_WARNING:{
+					eZDebug::writeWarning($message,$label);
+				}
+				case eZDebug::LEVEL_ERROR:{
+					eZDebug::writeError($message,$label);
+				}
+				case eZDebug::LEVEL_DEBUG:{
+					eZDebug::writeDebug($message,$label);
+				}
+				default:{
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
+	}
 
 	function findObjectNode($object){
 		if(get_class($object)=='eZContentObject'){
