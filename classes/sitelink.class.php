@@ -156,7 +156,7 @@ class SiteLink
 	}
 
 	function normalize(){
-		if($this->urlComponents && !$this->nodeID){
+		if($this->urlComponents){
 			if($this->isMultisite && $this->urlComponents['path'] && !$this->urlComponents['host']){
 				if($this->urlComponents['path']){
 					foreach(self::pathPrefixList() as $PathPrefix){
@@ -201,6 +201,11 @@ class SiteLink
 	function setObjectNode(){
 		if($this->nodeID){
 			$this->objectNode=$this->findObjectNode(eZContentObjectTreeNode::fetch($this->nodeID)->object());
+			if($this->nodeID!=$this->objectNode->NodeID){
+				$this->nodeID=$this->objectNode->NodeID;
+				$this->urlComponents=self::URLComponents($this->objectNode->pathWithNames());
+				$this->normalize();
+			}
 			if(!$this->urlComponents){
 				$pathWithNames=$this->objectNode->pathWithNames();
 				$this->urlComponents=self::URLComponents((empty($pathWithNames) && $this->isMultisite)?$this->pathPrefix:$pathWithNames);
