@@ -44,15 +44,19 @@ class SiteLink
 			switch($level){
 				case eZDebug::LEVEL_NOTICE:{
 					eZDebug::writeNotice($message,$label);
+					break;
 				}
 				case eZDebug::LEVEL_WARNING:{
 					eZDebug::writeWarning($message,$label);
+					break;
 				}
 				case eZDebug::LEVEL_ERROR:{
 					eZDebug::writeError($message,$label);
+					break;
 				}
 				case eZDebug::LEVEL_DEBUG:{
 					eZDebug::writeDebug($message,$label);
+					break;
 				}
 				default:{
 					return false;
