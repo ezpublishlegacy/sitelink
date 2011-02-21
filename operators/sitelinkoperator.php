@@ -17,13 +17,14 @@
 	}
 
 	function namedParameterList(){
+		$ForceAbsolute=SiteLink::configSetting('OperatorSettings','ForceAbsoluteURL')==='enabled';
 		return array(
 			'sitelink' => array(
 				'parameters' => array('type'=>'mixed', 'required'=>false, 'default'=>true),
-				'absolute' => array('type'=>'mixed', 'required'=>false, 'default'=>false)
+				'absolute' => array('type'=>'mixed', 'required'=>false, 'default'=>$ForceAbsolute?true:false)
 				),
 			'sitelink_path'=>array(
-				'absolute'=>array('type'=>'mixed', 'required'=>false, 'default'=>false)
+				'absolute'=>array('type'=>'mixed', 'required'=>false, 'default'=>$ForceAbsolute?true:false)
 				)
 			);
 	}

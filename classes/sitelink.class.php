@@ -264,7 +264,6 @@ class SiteLink
 		return false;
 	}
 
-	// enable ForceAbsoluteURL setting to be functional
 	private static function parseParameters(&$object, $parameters){
 		if(is_array($parameters['parameters'])){
 			foreach($parameters['parameters'] as $key=>$value){
