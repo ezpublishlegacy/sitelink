@@ -48,7 +48,9 @@
 				'quotes'=>true,
 				'absolute'=>false,
 				'hash'=>false,
-				'query'=>false
+				'query'=>false,
+				'debug'=>false,
+				'node_id'=>true
 			),
 			'sitelink_path'=>array(
 				'absolute'=>false
@@ -66,7 +68,7 @@
 	boolean_value:
 		['yes'|'no'], [1|0], [true|false]
 	parameters:
-		[quotes, absolute, hash, query]
+		[quotes, absolute, hash, query, debug, node_id]
 */
 	static function sitelink(&$operatorValue, &$namedParameters){
 		$SiteLink = new SiteLink($operatorValue,$namedParameters);

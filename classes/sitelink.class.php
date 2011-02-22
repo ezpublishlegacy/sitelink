@@ -198,9 +198,9 @@ class SiteLink
 		return array_reverse(array_slice($PathArray,0,++$key));
 	}
 
-	function setObjectNode(){
+	function setObjectNode($object=false){
 		if($this->nodeID){
-			$this->objectNode=$this->findObjectNode(eZContentObjectTreeNode::fetch($this->nodeID)->object());
+			$this->objectNode=$this->findObjectNode( $object ? $object : eZContentObjectTreeNode::fetch($this->nodeID)->object() );
 			if($this->nodeID!=$this->objectNode->NodeID){
 				$this->nodeID=$this->objectNode->NodeID;
 				$this->urlComponents=self::URLComponents($this->objectNode->pathWithNames());
@@ -213,7 +213,7 @@ class SiteLink
 			return true;
 		}elseif(is_numeric($this->operatorValue) || is_integer($this->operatorValue)){
 			$this->nodeID=(int)$this->operatorValue;
-			return $this->setObjectNode();
+			return $this->setObjectNode(call_user_func(array($this->parameters['node_id']?'eZContentObjectTreeNode':'eZContentObject','fetch'),$this->nodeID));
 		}
 		return false;
 	}
