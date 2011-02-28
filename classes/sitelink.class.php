@@ -158,7 +158,7 @@ class SiteLink
 	function normalize(){
 		if($this->urlComponents){
 			if($this->isMultisite && $this->urlComponents['path'] && !$this->urlComponents['host']){
-				if($this->urlComponents['path']){
+				if($this->urlComponents['path'] && stripos($this->urlComponents['path'],'Media/')===false){
 					foreach(self::pathPrefixList() as $PathPrefix){
 						if(stripos($this->urlComponents['path'],$PathPrefix)!==false){
 							$this->pathPrefix=$PathPrefix;
