@@ -18,6 +18,7 @@ class SiteLink
 		$this->isMultisite=self::isMultisite($this);
 		$this->currentHost=eZSys::hostname();
 		$this->siteAccess=isset($GLOBALS['eZCurrentAccess']['name'])?$GLOBALS['eZCurrentAccess']:false;
+		$this->currentLocale=SiteLink::configSetting('RegionalSettings','Locale','site.ini');
 		$this->classSettings=false;
 
 		$this->rootNodeID=self::configSetting('NodeSettings','RootNode','content.ini');
