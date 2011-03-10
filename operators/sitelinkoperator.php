@@ -65,10 +65,18 @@
 	sitelink(boolean_value,boolean_value)
 	sitelink(parameters)
 
-	boolean_value:
-		['yes'|'no'], [1|0], [true|false]
-	parameters:
-		[quotes, absolute, hash, query, debug, node_id]
+	== Parameters
+		- boolean_value:
+			['yes'|'no'], [1|0], [true|false]
+		- parameters:
+			[quotes, absolute, hash, query, debug, node_id]
+
+	== Operator Values
+		- Node ID
+		- Object ID
+		- Content Object Tree Node
+		- Content Object
+		- URI String
 */
 	static function sitelink(&$operatorValue, &$namedParameters){
 		$SiteLink = new SiteLink($operatorValue,$namedParameters);
