@@ -18,7 +18,6 @@ class SiteLink
 		$this->isMultisite=self::isMultisite($this);
 		$this->currentHost=eZSys::hostname();
 		$this->siteAccess=isset($GLOBALS['eZCurrentAccess']['name'])?$GLOBALS['eZCurrentAccess']:false;
-		$this->currentLocale=SiteLink::configSetting('RegionalSettings','Locale','site.ini');
 		$this->classSettings=false;
 
 		$this->rootNodeID=self::configSetting('NodeSettings','RootNode','content.ini');
@@ -82,7 +81,8 @@ class SiteLink
 		if($this->urlComponents){
 			$urlComponents = array_merge($this->urlComponents,array(
 					'host'=>$host?$host:$this->urlComponents['host'],
-					'path'=>preg_replace('/^([^\/].*)|^$/','/$1',preg_replace('/^'.str_replace('/','\\/',$this->pathPrefix).'\/*/','/',$this->urlComponents['path']))
+					'path'=>preg_replace('/^([^\/].*)|^$/','/$1',preg_replace('/^'.str_replace('/','\\/',$this->pathPrefix).'\/*/','/',$this->urlComponents['path'])),
+					'user_parameters'=>$this->parameters['user_parameters']?$this->parameters['user_parameters']:$this->urlComponents['user_parameters']
 				));
 			if($this->siteAccess && isset($this->siteAccess['uri_part']) && count($this->siteAccess['uri_part']) && !$urlComponents['host']){
 				if(stripos($urlComponents['path'],implode('/',$this->siteAccess['uri_part']))===false){
@@ -96,7 +96,7 @@ class SiteLink
 			}
 			if(isset($urlComponents['user_parameters']) && $urlComponents['user_parameters']){
 				foreach($urlComponents['user_parameters'] as $key=>$value){
-					$operatorValue.="/($key)/$value";
+					if(!empty($value)){$operatorValue.="/($key)/$value";}
 				}
 			}
 			if($urlComponents['query']){$operatorValue.='?'.$urlComponents['query'];}
@@ -159,7 +159,7 @@ class SiteLink
 	function normalize(){
 		if($this->urlComponents){
 			if($this->isMultisite && $this->urlComponents['path'] && !$this->urlComponents['host']){
-				if($this->urlComponents['path'] && stripos($this->urlComponents['path'],'Media/')===false){
+				if($this->urlComponents['path']){
 					foreach(self::pathPrefixList() as $PathPrefix){
 						if(stripos($this->urlComponents['path'],$PathPrefix)!==false){
 							$this->pathPrefix=$PathPrefix;
@@ -308,6 +308,10 @@ class SiteLink
 		}
 		if(isset($parameters['absolute']) && !isset($parameters['parameters']['absolute'])){
 			$parameters['parameters']['absolute']=(bool)$parameters['absolute'];
+		}
+		if(isset($parameters['parameters']['user_parameters']) && $parameters['parameters']['user_parameters']){
+			preg_match_all('/\/\((\w+)\)\/(\w*)/s',$parameters['parameters']['user_parameters'],$matches);
+			$parameters['parameters']['user_parameters']=array_combine($matches[1],$matches[2]);
 		}
 		$object->parameters=array_merge(SiteLinkOperator::operatorDefaults('sitelink'),$parameters['parameters']);
 	}

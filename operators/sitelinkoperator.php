@@ -50,7 +50,8 @@
 				'hash'=>false,
 				'query'=>false,
 				'debug'=>false,
-				'node_id'=>true
+				'node_id'=>true,
+				'user_parameters'=>false
 			),
 			'sitelink_path'=>array(
 				'absolute'=>false
@@ -65,18 +66,10 @@
 	sitelink(boolean_value,boolean_value)
 	sitelink(parameters)
 
-	== Parameters
-		- boolean_value:
-			['yes'|'no'], [1|0], [true|false]
-		- parameters:
-			[quotes, absolute, hash, query, debug, node_id]
-
-	== Operator Values
-		- Node ID
-		- Object ID
-		- Content Object Tree Node
-		- Content Object
-		- URI String
+	boolean_value:
+		['yes'|'no'], [1|0], [true|false]
+	parameters:
+		[quotes, absolute, hash, query, debug, node_id]
 */
 	static function sitelink(&$operatorValue, &$namedParameters){
 		$SiteLink = new SiteLink($operatorValue,$namedParameters);
@@ -98,48 +91,30 @@
 		}
 
 		if($SiteLink->isMultisite){
-			$HostMatchMapItems=SiteLink::hostMatchMapItems($SiteLink);
-			$HostSiteAccess=array_search($SiteLink->currentHost,$HostMatchMapItems);
-
+			$Match=false;
 			$PathArray = $SiteLink->objectNode->pathArray();
-			foreach($HostMatchMapItems as $Name=>$Host){
+			foreach(SiteLink::hostMatchMapItems($SiteLink) as $Name=>$Host){
 				$HostRootNode = SiteLink::configSetting('NodeSettings','RootNode','content.ini',"settings/siteaccess/$Name",true);
 				if(array_search($HostRootNode,$PathArray)!==false){
 					foreach(array_reverse($PathArray) as $PathNodeID){
 						if($PathNodeID==$HostRootNode){
-							$Match[$Host]=array(
-								'host'=>$Host,
-								'siteaccess'=>$Name,
-								'root_node_id'=>$HostRootNode,
-								'path_prefix'=>SiteLink::configSetting('SiteAccessSettings','PathPrefix','site.ini',"settings/siteaccess/$Name",true),
-								'locale'=>SiteLink::configSetting('RegionalSettings','Locale','site.ini',"settings/siteaccess/$Name",true)
-							);
+							$Match=true;
+							$SiteLink->pathPrefix=SiteLink::configSetting('SiteAccessSettings','PathPrefix','site.ini',"settings/siteaccess/$Name",true);
+							break 2;
 						}
 					}
 				}
 			}
-
-			if(!($UseMatch=isset($Match[$SiteLink->currentHost])?$Match[$SiteLink->currentHost]:false)){
-				foreach($Match as $UseMatch){
-					if($UseMatch['locale']==$SiteLink->currentLocale){
-						break;
-					}
-				}
-				if(!$UseMatch){
-					eZDebug::writeWarning('No host matches found have been found.','SiteLink Operator: PHP Class Warning');
-				}
-			}
-
 			// Use host override
 			$HostOverride=SiteLink::configSetting('OperatorSettings','HostOverride','sitelink.ini');
 			if(!empty($HostOverride) && $HostOverride=='enabled'){
-				if($UseMatch && $SiteAccess=SiteLink::configSetting('OperatorSettings','SiteAccess','sitelink.ini')){
-					if(array_key_exists($UseMatch['siteaccess'],$SiteAccess)){
-						$UseMatch['host']=$SiteAccess[$UseMatch['siteaccess']];
+				if($Match && $SiteAccess=SiteLink::configSetting('OperatorSettings','SiteAccess','sitelink.ini')){
+					if(array_key_exists($Name,$SiteAccess)){
+						$Host=$SiteAccess[$Name];
 					}
 				}
 			}
-			return $SiteLink->hyperlink($operatorValue,$UseMatch?$UseMatch['host']:false);
+			return $SiteLink->hyperlink($operatorValue,$Match?$Host:false);
 		}
 
 		return $SiteLink->hyperlink($operatorValue);
