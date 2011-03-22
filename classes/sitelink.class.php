@@ -281,7 +281,7 @@ class SiteLink
 	// Currently a URI in the form: content/view/full/43, will not be converted into a correct path.
 	static function URLComponents($value){
 		if(is_string($value) && !is_numeric($value) && !parse_url($value,PHP_URL_SCHEME)){
-			$DefaultURL = array('scheme'=>'http','host'=>false,'user'=>false,'pass'=>false,'path'=>false,'query'=>false,'fragment'=>false);
+			$DefaultURL = array('scheme'=>'http','host'=>false,'user'=>false,'pass'=>false,'path'=>false,'query'=>false,'fragment'=>false,'user_parameters'=>false);
 			if(preg_match_all(self::ANCHOR_REGEXP,$value,$Matches)){$value = ltrim(eZSys::requestURI().$value,'/');}
 			$ParsedURL = array_merge($DefaultURL,parse_url($value));
 			if($ParsedURL['path']){
