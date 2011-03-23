@@ -51,7 +51,8 @@
 				'query'=>false,
 				'debug'=>false,
 				'node_id'=>true,
-				'user_parameters'=>false
+				'user_parameters'=>false,
+				'siteaccess'=>false
 			),
 			'sitelink_path'=>array(
 				'absolute'=>false
