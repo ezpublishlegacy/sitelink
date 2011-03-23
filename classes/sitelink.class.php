@@ -15,7 +15,9 @@ class SiteLink
 	function __construct($operatorValue, $parameters){
 		self::parseParameters($this, $parameters);
 
+		$this->currentUser=eZUser::currentUser();
 		$this->isMultisite=self::isMultisite($this);
+		$this->useSiteaccessOverride=self::useSiteaccessOverride($this);
 		$this->currentHost=eZSys::hostname();
 		$this->siteAccess=isset($GLOBALS['eZCurrentAccess']['name'])?$GLOBALS['eZCurrentAccess']:false;
 		$this->classSettings=false;
@@ -84,7 +86,9 @@ class SiteLink
 					'path'=>preg_replace('/^([^\/].*)|^$/','/$1',preg_replace('/^'.str_replace('/','\\/',$this->pathPrefix).'\/*/','/',$this->urlComponents['path'])),
 					'user_parameters'=>$this->parameters['user_parameters']?$this->parameters['user_parameters']:$this->urlComponents['user_parameters']
 				));
-			if($this->siteAccess && isset($this->siteAccess['uri_part']) && count($this->siteAccess['uri_part']) && !$urlComponents['host']){
+			if($this->useSiteaccessOverride && isset($this->useSiteaccess)){
+				$urlComponents['path']='/'.$this->useSiteaccess.$urlComponents['path'];
+			} else if($this->siteAccess && isset($this->siteAccess['uri_part']) && count($this->siteAccess['uri_part']) && !$urlComponents['host']){
 				if(stripos($urlComponents['path'],implode('/',$this->siteAccess['uri_part']))===false){
 					$urlComponents['path']='/'.implode('/',$this->siteAccess['uri_part']).$urlComponents['path'];
 				}
@@ -294,6 +298,19 @@ class SiteLink
 				}
 			}
 			return $ParsedURL;
+		}
+		return false;
+	}
+
+	static function useSiteaccessOverride(&$object){
+		$useSiteaccessOverride=self::configSetting('OperatorSettings','RoleOverride')=='enabled';
+		$overrideSiteaccess=(isset($object->parameters['siteaccess']) && $object->parameters['siteaccess']);
+		if ($useSiteaccessOverride || $overrideSiteaccess) {
+			$object->parameters['role_list']=self::configSetting('OperatorSettings','RoleList');
+			if (count($RoleIDs = array_intersect(array_keys($object->parameters['role_list']), $object->currentUser->roleIDList()))) {
+				$object->useSiteaccess=$overrideSiteaccess ? $object->parameters['siteaccess'] : $object->parameters['role_list'][$RoleIDs[0]];
+			}
+			return true;
 		}
 		return false;
 	}
