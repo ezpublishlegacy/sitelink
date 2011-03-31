@@ -161,6 +161,13 @@ class SiteLink
 	}
 
 	function normalize(){
+		$ini = eZINI::instance();
+		$excluded = ($ini->hasSection('SiteAccessSettings')&&$ini->hasVariable('SiteAccessSettings', 'PathPrefixExclude'))?$ini->variable('SiteAccessSettings', 'PathPrefixExclude'): array();
+		
+		foreach ($excluded as $ex) {
+			if (strpos($this->urlComponents['path'], $ex) !== false) return true;
+		}
+		
 		if($this->urlComponents){
 			if($this->isMultisite && $this->urlComponents['path'] && !$this->urlComponents['host']){
 				if($this->urlComponents['path']){
