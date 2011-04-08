@@ -18,6 +18,7 @@ class SiteLink
 		$this->currentUser=eZUser::currentUser();
 		$this->isMultisite=self::isMultisite($this);
 		$this->useSiteaccessOverride=self::useSiteaccessOverride($this);
+		$this->currentLocale=SiteLink::configSetting('RegionalSettings','Locale','site.ini');
 		$this->currentHost=eZSys::hostname();
 		$this->siteAccess=isset($GLOBALS['eZCurrentAccess']['name'])?$GLOBALS['eZCurrentAccess']:false;
 		$this->classSettings=false;
