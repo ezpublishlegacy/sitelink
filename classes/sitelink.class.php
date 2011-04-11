@@ -31,6 +31,7 @@ class SiteLink
 			$this->nodeID=$this->objectNode->NodeID;
 			$this->urlComponents=self::URLComponents($this->objectNode->pathWithNames());
 			$this->operatorValue=serialize($this->operatorValue);
+			$this->normalize();
 		}else{
 			$this->urlComponents=self::URLComponents($this->operatorValue);
 			if(stripos($operatorValue,'rss/') !== false){
