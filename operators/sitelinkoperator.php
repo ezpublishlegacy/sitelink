@@ -111,13 +111,11 @@
 					}
 				}
 			}
-			
 			if(!($UseMatch=isset($Match[$SiteLink->currentHost])?$Match[$SiteLink->currentHost]:false)){
 				$Matchup=0;
 				foreach($Match as $UseMatchItem){
 					if($UseMatchItem['locale']==$SiteLink->currentLocale){
-						$CheckMatch = similar_text($SiteLink->currentHost, $UseMatchItem['host']);
-						if($CheckMatch > $Matchup){
+						if(($CheckMatch=similar_text($SiteLink->currentHost, $UseMatchItem['host'])) > $Matchup){
 							$Matchup = $CheckMatch;
 							$UseMatch = $UseMatchItem;
 						}
