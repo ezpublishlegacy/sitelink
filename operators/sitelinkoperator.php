@@ -93,12 +93,8 @@
 		}
 
 		if($SiteLink->isMultisite){
-			//$Match=false;
 			$HostMatchMapItems=SiteLink::hostMatchMapItems($SiteLink);
-			$HostSiteAccess=array_search($SiteLink->currentHost,$HostMatchMapItems);
-			
 			$PathArray = $SiteLink->objectNode->pathArray();
-			
 			foreach($HostMatchMapItems as $Name=>$Host){
 				$HostRootNode = SiteLink::configSetting('NodeSettings','RootNode','content.ini',"settings/siteaccess/$Name",true);
 				if(array_search($HostRootNode,$PathArray)!==false){
@@ -117,13 +113,13 @@
 			}
 			
 			if(!($UseMatch=isset($Match[$SiteLink->currentHost])?$Match[$SiteLink->currentHost]:false)){
-				$matchup = 0;
-				foreach($Match as $UseMatch_tmp){
-					if($UseMatch_tmp['locale']==$SiteLink->currentLocale){
-						$checkmatch = similar_text($SiteLink->currentHost, $UseMatch_tmp['host']);
-						if ($checkmatch > $matchup) {
-							$matchup = $checkmatch;
-							$UseMatch = $UseMatch_tmp;
+				$Matchup=0;
+				foreach($Match as $UseMatchItem){
+					if($UseMatchItem['locale']==$SiteLink->currentLocale){
+						$CheckMatch = similar_text($SiteLink->currentHost, $UseMatchItem['host']);
+						if($CheckMatch > $Matchup){
+							$Matchup = $CheckMatch;
+							$UseMatch = $UseMatchItem;
 						}
 					}
 				}
@@ -131,17 +127,6 @@
 					eZDebug::writeWarning('No host matches found have been found.','SiteLink Operator: PHP Class Warning');
 				}
 			}
-			
-			// Use host override
-			$HostOverride=SiteLink::configSetting('OperatorSettings','HostOverride','sitelink.ini');
-			if(!empty($HostOverride) && $HostOverride=='enabled'){
-				if($UseMatch && $SiteAccess=SiteLink::configSetting('OperatorSettings','SiteAccess','sitelink.ini')){
-					if(array_key_exists($UseMatch['siteaccess'],$SiteAccess)){
-						$UseMatch['host']=$SiteAccess[$UseMatch['siteaccess']];
-					}
-				}
-			}
-
 			return $SiteLink->hyperlink($operatorValue,$UseMatch?$UseMatch['host']:false);
 		}
 

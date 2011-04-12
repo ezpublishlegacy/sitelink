@@ -267,11 +267,13 @@ class SiteLink
 
 	static function hostMatchMapItems($object=false){
 		$HostMatchMapItems=array();
+		$HostOverride=SiteLink::configSetting('OperatorSettings','HostOverride','sitelink.ini');
+		$SiteAccess=(!empty($HostOverride) && $HostOverride=='enabled')?SiteLink::configSetting('OperatorSettings','SiteAccess','sitelink.ini'):false;
 		if(($MapItems=SiteLink::configSetting('SiteAccessSettings','HostMatchMapItems','site.ini')) && is_array($MapItems)){
 			foreach($MapItems as $HostItem){
 				$HostItemArray=explode(';',$HostItem);
 				if(!array_key_exists($HostItemArray[1],$HostMatchMapItems) || ($object && $object->currentHost==$HostItemArray[0] && $object->siteAccess['name']==$HostItemArray[1])){
-					$HostMatchMapItems[$HostItemArray[1]] = $HostItemArray[0];
+					$HostMatchMapItems[$HostItemArray[1]] = ($SiteAccess && array_key_exists($HostItemArray[1],$SiteAccess)) ? $SiteAccess[$HostItemArray[1]] : $HostItemArray[0];
 				}
 			}
 		}
