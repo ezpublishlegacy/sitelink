@@ -6,7 +6,7 @@ class SiteLinkBinaryFile implements SiteLinkDataTypeInterface
 		$ContentObjectID = $Attribute->ContentObjectID;
 		$ContentObjectAttributeID = $Attribute->ID;
 		$FileName = urlencode($Attribute->content()->OriginalFilename);
-		return "content/download/$ContentObjectID/$ContentObjectAttributeID/$FileName";
+		return "content/download/$ContentObjectID/$ContentObjectAttributeID/".urlencode($FileName);
 	}
 }
 

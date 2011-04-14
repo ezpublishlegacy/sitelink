@@ -73,7 +73,6 @@
 		[quotes, absolute, hash, query, debug, node_id]
 */
 	static function sitelink(&$operatorValue, &$namedParameters){
-		
 		$SiteLink = new SiteLink($operatorValue,$namedParameters);
 		if(!isset($SiteLink->objectNode)){
 			if(!$SiteLink->setObjectNode()){
