@@ -96,6 +96,9 @@
 			$PathArray = $SiteLink->objectNode->pathArray();
 			foreach($HostMatchMapItems as $Name=>$Host){
 				$HostRootNode = SiteLink::configSetting('NodeSettings','RootNode','content.ini',"settings/siteaccess/$Name",true);
+				if(!$HostRootNode){
+					$HostRootNode = SiteLink::configSetting('NodeSettings','RootNode','content.ini');
+				}
 				if(array_search($HostRootNode,$PathArray)!==false){
 					foreach(array_reverse($PathArray) as $PathNodeID){
 						if($PathNodeID==$HostRootNode){
