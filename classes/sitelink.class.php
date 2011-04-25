@@ -197,7 +197,7 @@ class SiteLink
 		$operatorName='sitelink';
 		foreach(array_reverse($PathArray) as $key=>$value){
 			$NodeObject = eZContentObjectTreeNode::fetch($value);
-			$operatorValue=$NodeObject->pathWithNames();
+			$operatorValue=$NodeObject;
 			$SiteLinkOperator->modify($tpl, $operatorName, $operatorParameters, $rootNamespace, $currentNamespace, $operatorValue, $namedParameters);
 			$PathArray[$key]=array(
 					'node_id'=>$NodeObject->NodeID,
