@@ -210,7 +210,17 @@ class SiteLink
 				break;
 			}
 		}
-		return array_reverse(array_slice($PathArray,0,++$key));
+		$PathArray=array_reverse(array_slice($PathArray,0,++$key));
+		if($GLOBALS['eZRequestedModuleParams']['module_name']=='content' && $GLOBALS['eZRequestedModuleParams']['function_name']=='view' && $GLOBALS['eZRequestedModuleParams']['parameters']['ViewMode']=='sitemap'){
+			$PathArray[0]['current']=false;
+			$PathArray[]=array(
+					'node_id'=>false,
+					'text'=>'Site Map',
+					'url_alias'=>false,
+					'current'=>true
+				);
+		}
+		return $PathArray;
 	}
 
 	function setObjectNode($object=false){
