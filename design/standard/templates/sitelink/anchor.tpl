@@ -1,0 +1,1 @@
+<a{foreach $attributes as $name=>$value}{if $value} {$name}="{$value}"{/if}{/foreach}>{$content}</a>

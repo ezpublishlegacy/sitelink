@@ -5,7 +5,7 @@
 	var $Operators;
 
 	function __construct(){
-		$this->Operators = array("sitelink","sitelink_path");
+		$this->Operators = array("sitelink","sitelink_anchor","sitelink_path");
 	}
 
 	function &operatorList(){
@@ -23,10 +23,13 @@
 				'parameters' => array('type'=>'mixed', 'required'=>false, 'default'=>true),
 				'absolute' => array('type'=>'mixed', 'required'=>false, 'default'=>$ForceAbsolute?true:false)
 				),
+			'sitelink_anchor'=>array(
+				'parameters' => array('type'=>'mixed', 'required'=>false, 'default'=>false)
+				),
 			'sitelink_path'=>array(
 				'absolute'=>array('type'=>'mixed', 'required'=>false, 'default'=>$ForceAbsolute?true:false)
 				)
-			);
+		);
 	}
 
 	// Currently a URI in the form: content/view/full/43, will not be converted into a correct path and therefore node.
@@ -34,6 +37,9 @@
 		switch($operatorName){
 			case 'sitelink':{
 				return self::sitelink($operatorValue, $namedParameters);
+			}
+			case 'sitelink_anchor':{
+				return self::sitelink_anchor($tpl, $operatorValue, $namedParameters);
 			}
 			case 'sitelink_path':{
 				return self::sitelink_path($operatorValue, $namedParameters);
@@ -50,13 +56,34 @@
 				'hash'=>false,
 				'query'=>false,
 				'debug'=>false,
-				'node_id'=>true
+				'node_id'=>true,
+				'as_object'=>false
+			),
+			'sitelink_anchor'=>array(
+				'content'=>false,
+				'title'=>false,
+				'new_window'=>false,
+				'class'=>false,
+				'sitelink'=>array()
 			),
 			'sitelink_path'=>array(
 				'absolute'=>false
 			)
 		);
 		return $operatorName?$defaults[$operatorName]:$defaults;
+	}
+
+	static function sitelink_anchor(&$tpl, &$operatorValue, &$namedParameters){
+		$SiteLinkAnchor=new SiteLinkAnchor($operatorValue, $namedParameters);
+		$SetHyperlink=$SiteLinkAnchor->setHyperlink();
+		if($SetHyperlink['error']){
+			if($SetHyperlink['error_code']==SiteLinkAnchor::ERROR_RESTRICTED){
+				$operatorValue='';
+			}
+			return false;
+		}
+eZDebug::writeDebug($SiteLinkAnchor,'$SiteLinkAnchor');
+		return $SiteLinkAnchor->anchor($tpl,$operatorValue);
 	}
 
 /*
@@ -72,6 +99,9 @@
 */
 	static function sitelink(&$operatorValue, &$namedParameters){
 		$SiteLink = new SiteLink($operatorValue,$namedParameters);
+if(is_array($namedParameters['parameters']) && isset($namedParameters['parameters']['as_object']) && $namedParameters['parameters']['as_object']){
+	eZDebug::writeNotice($SiteLink,'$SiteLink');
+}
 		if(!isset($SiteLink->objectNode)){
 			if(!$SiteLink->setObjectNode()){
 				return $SiteLink->hyperlink($operatorValue);

@@ -105,6 +105,12 @@ class SiteLink
 			}
 		}
 		if($this->parameters['quotes']){$operatorValue="\"$operatorValue\"";}
+
+		if($this->parameters['as_object']){
+			$this->hyperlink=$operatorValue;
+			$operatorValue=$this;
+		}
+
 		return true;
 	}
 
@@ -300,10 +306,10 @@ class SiteLink
 	private static function parseParameters(&$object, $parameters){
 		if(is_array($parameters['parameters'])){
 			foreach($parameters['parameters'] as $key=>$value){
-				$parameters['parameters'][$key]=((is_string($value)&&in_array($key,array('quotes','absolute')))?(($value=='yes')?true:false):$value);
+				$parameters['parameters'][$key]=((is_string($value)&&in_array($key,array('quotes','absolute')))?($value=='yes'):$value);
 			}
 		}else{
-			$parameters['parameters']=array('quotes'=>(is_string($parameters['parameters'])?(($parameters['parameters']=='yes')?true:false):$parameters['parameters']));
+			$parameters['parameters']=array('quotes'=>(is_string($parameters['parameters'])?($parameters['parameters']=='yes'):$parameters['parameters']));
 		}
 		if(isset($parameters['absolute']) && !isset($parameters['parameters']['absolute'])){
 			$parameters['parameters']['absolute']=(bool)$parameters['absolute'];
