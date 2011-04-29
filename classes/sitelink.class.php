@@ -195,14 +195,27 @@ class SiteLink
 		$SiteLinkOperator=new SiteLinkOperator();
 		$namedParameters = array('parameters'=>false,'absolute'=>$this->parameters['absolute']);
 		$operatorName='sitelink';
+		$DisabledNodeID=(self::configSetting('SiteLinkPathSettings','DisableNodeID')=='enabled')?self::configSetting('SiteLinkPathSettings','NodeIDList'):array();
+		$DisabledObjectID=(self::configSetting('SiteLinkPathSettings','DisableObjectID')=='enabled')?self::configSetting('SiteLinkPathSettings','ObjectIDList'):array();
+		if(count($DisabledObjectID)){
+			foreach($DisabledObjectID as $ObjectID){
+				foreach(eZContentObject::fetch($ObjectID)->assignedNodes() as $Node){
+					if(!in_array($NodeID=$Node->NodeID,$DisabledNodeID)){
+						$DisabledNodeID[]=$NodeID;
+					}
+				}
+			}
+		}
 		foreach(array_reverse($PathArray) as $key=>$value){
 			$NodeObject = eZContentObjectTreeNode::fetch($value);
-			$operatorValue=$NodeObject;
-			$SiteLinkOperator->modify($tpl, $operatorName, $operatorParameters, $rootNamespace, $currentNamespace, $operatorValue, $namedParameters);
+			if($hasLink=!in_array($value,$DisabledNodeID)){
+				$operatorValue=$NodeObject;
+				$SiteLinkOperator->modify($tpl, $operatorName, $operatorParameters, $rootNamespace, $currentNamespace, $operatorValue, $namedParameters);
+			}
 			$PathArray[$key]=array(
 					'node_id'=>$NodeObject->NodeID,
 					'text'=>$NodeObject->Name,
-					'url_alias'=>$operatorValue,
+					'url_alias'=>$hasLink?$operatorValue:false,
 					'current'=>$this->objectNode->NodeID==$value
 				);
 			if($this->rootNodeID==$value){
