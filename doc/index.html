@@ -1,0 +1,204 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" lang="en-US">
+<head>
+	<title>SiteLink Documentation</title>
+	<meta name="Content-language" content="en-US" />
+	<meta name="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+	<h1>SiteLink Documentation</h1>
+	<ul>
+		<li><a href="#sitelink">SiteLink Operator</a></li>
+		<li><a href="#sitelink_path">SiteLink Path Operator</a></li>
+		<li><a href="#sitelink-ini">SiteLink Configuration File <small>(sitelink.ini)</small></a></li>
+	</ul>
+	<hr />
+	<div id="sitelink">
+		<h2>SiteLink Operator</h2>
+		<p>The sitelink operator is the root operator for all of the operators provided by this class by returning the URL string for the given input value.</p>
+		<h3>Features</h3>
+		<ul>
+			<li>Link between multiple domains hosted on the same eZ Publish install
+				<ul>
+					<li>Provide a preferred host based on siteaccess</li>
+				</ul>
+			</li>
+			<li>Force all generate URLs to be absolute
+				<ul>
+					<li>At the operator call or in the sitelink.ini file</li>
+					<li>Override sitelink.ini setting at operator call</li>
+				</ul>
+			</li>
+			<li>Allow custom functionality for the generated URL based on node class and attribute datatype (based on if install is a multisite)
+				<ul>
+					<li>Provide a preferred link type for the class</li>
+					<li>Prevent the provided page from linking to itself (currently the operator will return an empty string)</li>
+					<li>Override the default specified datatype handler php class</li>
+				</ul>
+			</li>
+			<li>Override the default datatype handler php class for a specified attribute datatype with a new one
+				<ul>
+					<li>requires a php interface based class</li>
+				</ul>
+			</li>
+			<li>Allow a role for the current user to determine the siteaccess to be used in the generated URL string</li>
+			<li>Support for the PathPrefixExclude ini setting</li>
+		</ul>
+		<h3>Usage</h3>
+		<pre>input|sitelink([ parameters [, absolute ] ])</pre>
+		<dl>
+			<dt><span class="var">input</span></dt>
+			<dd>
+				<p>The available input values for the operator are:</p>
+				<dl>
+					<dt><code>node_id</code></dt>
+					<dd>An integer value representing the id of a node.</dd>
+					<dt><code>object_id</code></dt>
+					<dd>An integer value representing the id of an object. If this input option is desired, the node_id parameter <strong>must</strong> be set to <code>false</code>.</dd>
+					<dt><code>node</code></dt>
+					<dd>An object value that is a content object tree node.</dd>
+					<dt><code>object</code></dt>
+					<dd>An object value that is a content object.</dd>
+					<dt><code>uri_string</code></dt>
+					<dd>A string which is a relative or absolute URI.</dd>
+				</dl>
+			</dd>
+			<dt><span class="var">parameters</span> <code>(array | boolean | integer | string)</code></dt>
+			<dd>
+				<p>The parameters to be used in the processing of <code>input</code>. When this value is not an <code>array</code>, it is given to be the <code>quotes</code> value of the available associative array parameters. Available values for the associative array are:</p>
+				<dl>
+					<dt><code>absolute</code> [false]</dt>
+					<dd>Specify if the returned URL string should be an absolute or relative URL.
+						<ul>
+							<li><code>boolean</code> (true/false)</li>
+							<li><code>integer</code> (1/0)</li>
+							<li><code>string</code> (yes/no)</li>
+						</ul>
+					</dd>
+					<dt><code>debug</code> [false]</dt>
+					<dd>Allow internal PHP debugging to be used for a single use of sitelink without the debug output for all calls to sitelink.</dd>
+					<dt>*<code>hash</code> [false]</dt>
+					<dd>The URL fragment (hash) to append to the returned URL string.</dd>
+					<dt><code>node_id</code> [true]</dt>
+					<dd>Specify that the integer value given as an input is a node_id or contentobject_id</dd>
+					<dt><code>quotes</code> [true]</dt>
+					<dd>Should the returned URL string be quoted.
+						<ul>
+							<li><code>boolean</code> (true/false)</li>
+							<li><code>integer</code> (1/0)</li>
+							<li><code>string</code> (yes/no)</li>
+						</ul>
+					</dd>
+					<dt>*<code>query</code> [false]</dt>
+					<dd>The URL query string to append to the return URL string. This can be either an associative array or a string.</dd>
+					<dt><code>user_parameters</code> [false]</dt>
+					<dd>The user parameters to append to the returned URL string. This can be either an associative array or a string.</dd>
+				</dl>
+				<p>* This parameter has not be made functional.</p>
+			</dd>
+			<dt><span class="var">absolute</span> <code>(boolean | integer | string)</code></dt>
+			<dd>Specify if the returned URL string should be an absolute or relative URL. If <span class="var">ForceAbsoluteURL</span> is enabled, setting this value to <code>false</code> will not override the setting. In order to override this setting, the <code>absolute</code> parameter <em>must</em> be set in <span class="var">parameters</span> array.
+				<ul>
+					<li><code>boolean</code> (true/false)</li>
+					<li><code>integer</code> (1/0)</li>
+					<li><code>string</code> (yes/no)</li>
+				</ul>
+			</dd>
+		</dl>
+	</div>
+	<div id="sitelink_path">
+		<h2>SiteLink Path Operator</h2>
+		<p>The sitelink_path operator provides a correct path for the given input.</p>
+		<h3>Features</h3>
+		<ul>
+			<li>Provide a correct path for the given page
+				<ul>
+					<li>currently only node based pages are functional</li>
+				</ul>
+			</li>
+			<li>Disable a page from linking in the path
+				<ul>
+					<li>Based on node id or object id</li>
+				</ul>
+			</li>
+		</ul>
+		<h3>Usage</h3>
+		<pre>input|sitelink_path([ absolute ])</pre>
+		<dl>
+			<dt><span class="var">input</span></dt>
+			<dd>see input for the SiteLink operator</dd>
+			<dt><span class="var">absolute</span> <code>(boolean | integer | string)</code></dt>
+			<dd>Specify if the returned URL string should be an absolute or relative URL.
+				<ul>
+					<li><code>boolean</code> (true/false)</li>
+					<li><code>integer</code> (1/0)</li>
+					<li><code>string</code> (yes/no)</li>
+				</ul>
+			</dd>
+		</dl>
+	</div>
+	<div id="sitelink-ini">
+		<h2>SiteLink Configuration File <small>(sitelink.ini)</small></h2>
+		<div>
+			<h3>[OperatorSettings]</h3>
+			<dl>
+				<dt>DefaultLinkType [ <strong>internal</strong> | external |download ]</dt>
+				<dd>Sets the default link type for all SiteLink classes. This setting is related to the class block LinkTypeList settings.</dd>
+				<dt>ForceAbsoluteURL [ <strong>disabled</strong> | enabled ]</dt>
+				<dd>
+					<p>Force all generate URLs to be absolute.</p>
+				</dd>
+				<dt>HostOverride [ <strong>disabled</strong> | enabled ]</dt>
+				<dd>Allows the site.ini HostMatchMapItems setting to be overridden to specify a default hostname when more than one hostname matches a siteaccess</dd>
+				<dt>RoleList</dt>
+				<dd>The list of role_id/siteaccess pairs for the RoleOverride feature.<pre>RoleList[<em>role_id</em>]=<em>siteaccess</em></pre></dd>
+				<dt>RoleOverride [ <strong>disabled</strong> | enabled ]</dt>
+				<dd>Allow a role for the current user to determine the siteaccess to be used in the generated URL string</dd>
+				<dt>SiteAccess</dt>
+				<dd>The list of siteaccess/hostname pairs for the HostOverride feature.<pre>SiteAccess[<em>siteacces_name</em>]=<em>hostname</em></pre></dd>
+				<dt>SiteLinkClassList</dt>
+				<dd>
+					<p>The list of classes to be used for custom URL generation.</p>
+					<p>Default Classes:</p>
+					<ul>
+						<li>link</li>
+						<li>file</li>
+						<li>image</li>
+						<li>banner</li>
+					</ul>
+				</dd>
+			</dl>
+			<h3>[SiteLinkPathSettings]</h3>
+			<dl>
+				<dt>DisableNodeID [ <strong>disabled</strong> | enabled ]</dt>
+				<dd>Prevents the node in the generated path from being a link</dd>
+				<dt>DisableObjectID [ <strong>disabled</strong> | enabled ]</dt>
+				<dd>Prevents all node instances of the object in the generated path from being a link</dd>
+				<dt>NodeIDList</dt>
+				<dd>The list of node ids to disable</dd>
+				<dt>ObjectIDList</dt>
+				<dd>The list of object ids to disable</dd>
+			</dl>
+			<h3>[DataTypeSettings]</h3>
+			<dl>
+				<dt>ClassList</dt>
+				<dd>The list of PHP classes to be used with a specific attribute datatype.<pre>ClassList[<em>attribute_datatype</em>]=<em>php_class</em></pre></dd>
+			</dl>
+			<h3>[<em>class_identifier</em>]</h3>
+			<p>A custom block where each block as a corresponding entry in the [OperatorSettings][SiteLinkClassList] setting.</p>
+			<dl>
+				<dt>DataTypeClass</dt>
+				<dd>Specifiy an override data type class to use</dd>
+				<dt>DefaultLinkType</dt>
+				<dd>Used to override the operator setting for a class</dd>
+				<dt>LinkTypeList</dt>
+				<dd>Specifiy the attribute identifier to use for each link type. Example:<pre>LinkTypeList[internal]=internal_link</pre></dd>
+				<dt>SelfLinking [ disabled | <strong>enabled</strong> ]</dt>
+				<dd>Prevent an input of this class from linking to itself (currently the operator will return an empty string)</dd>
+			</dl>
+		</div>
+	</div>
+</body>
+
+</html>
