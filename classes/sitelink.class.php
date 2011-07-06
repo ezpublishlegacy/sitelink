@@ -27,11 +27,12 @@ class SiteLink
 		$this->operatorValue=empty($operatorValue)?(int)$this->rootNodeID:$operatorValue;
 
 		if(is_object($this->operatorValue)){
-			$this->objectNode=$this->findObjectNode($this->operatorValue);
-			$this->nodeID=$this->objectNode->NodeID;
-			$this->urlComponents=self::URLComponents($this->objectNode->pathWithNames());
-			$this->operatorValue=serialize($this->operatorValue);
-			$this->normalize();
+			if($this->objectNode=$this->findObjectNode($this->operatorValue)){
+				$this->nodeID=$this->objectNode->NodeID;
+				$this->urlComponents=self::URLComponents($this->objectNode->pathWithNames());
+				$this->operatorValue=serialize($this->operatorValue);
+				$this->normalize();
+			}
 		}else{
 			$this->urlComponents=self::URLComponents($this->operatorValue);
 			if(stripos($operatorValue,'rss/') !== false){
