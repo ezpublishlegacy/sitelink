@@ -92,7 +92,8 @@ class SiteLink
 			if($this->useSiteaccessOverride && isset($this->useSiteaccess)){
 				$urlComponents['path']='/'.$this->useSiteaccess.$urlComponents['path'];
 			} else if($this->siteAccess && isset($this->siteAccess['uri_part']) && count($this->siteAccess['uri_part']) && !$urlComponents['host']){
-				if(stripos($urlComponents['path'],implode('/',$this->siteAccess['uri_part']))===false){
+				$SiteAccessPosition=stripos($urlComponents['path'],implode('/',$this->siteAccess['uri_part']));
+				if($SiteAccessPosition===false || $SiteAccessPosition>0){
 					$urlComponents['path']='/'.implode('/',$this->siteAccess['uri_part']).$urlComponents['path'];
 				}
 			}
