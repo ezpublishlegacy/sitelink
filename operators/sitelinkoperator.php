@@ -84,7 +84,7 @@
 			$SiteLink->classSettings = SiteLink::classSettings($SiteLink->objectNode->ClassIdentifier);
 			$NodeLink=$SiteLink->nodeLink();
 			if(!$NodeLink['error'] && $NodeLink['result']){
-				$RelinkNamedParameters=array('parameters'=>false,'absolute'=>$SiteLink->isMultisite);
+				$RelinkNamedParameters=array('parameters'=>array(),'absolute'=>$SiteLink->isMultisite);
 				$operatorValue=$NodeLink['result'];
 				return self::sitelink($operatorValue, $RelinkNamedParameters);
 			}
