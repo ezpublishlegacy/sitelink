@@ -92,8 +92,7 @@ class SiteLink
 			if($this->useSiteaccessOverride && isset($this->useSiteaccess)){
 				$urlComponents['path']='/'.$this->useSiteaccess.$urlComponents['path'];
 			} else if($this->siteAccess && isset($this->siteAccess['uri_part']) && count($this->siteAccess['uri_part']) && !$urlComponents['host']){
-				$SiteAccessPosition=stripos($urlComponents['path'],implode('/',$this->siteAccess['uri_part']));
-				if($SiteAccessPosition===false || $SiteAccessPosition>0){
+				if(stripos($urlComponents['path'],implode('/',$this->siteAccess['uri_part']))===false){
 					$urlComponents['path']='/'.implode('/',$this->siteAccess['uri_part']).$urlComponents['path'];
 				}
 			}
@@ -170,18 +169,17 @@ class SiteLink
 		
 		foreach ($excluded as $ex) {
 			if (strpos($this->urlComponents['path'], $ex) !== false) return true;
-		}
-		
+		}	
 		if($this->urlComponents){
 			if($this->isMultisite && $this->urlComponents['path'] && !$this->urlComponents['host']){
 				if($this->urlComponents['path']){
 					foreach(self::pathPrefixList() as $PathPrefix){
-						if(stripos($this->urlComponents['path'],$PathPrefix)!==false){
+						if(stripos($this->urlComponents['path'],"$PathPrefix/")!==false){
 							$this->pathPrefix=$PathPrefix;
 							break;
 						}
 					}
-					if(stripos($this->urlComponents['path'],$this->pathPrefix)===false){
+					if(stripos($this->urlComponents['path'],"$this->pathPrefix/")===false){
 						$this->urlComponents['path']=$this->pathPrefix.'/'.$this->urlComponents['path'];
 					}
 				}
@@ -316,7 +314,10 @@ class SiteLink
 	static function pathPrefixList(){
 		$PathPrefixList=array();
 		foreach(eZSiteAccess::siteAccessList() as $key=>$value){
-			$PathPrefixList[]=self::configSetting('SiteAccessSettings','PathPrefix','site.ini','settings/siteaccess/'.$value['name'],true);
+			$PathPrefixItem=self::configSetting('SiteAccessSettings','PathPrefix','site.ini','settings/siteaccess/'.$value['name'],true);
+			if($PathPrefixItem && !in_array($PathPrefixItem,$PathPrefixList)){
+				$PathPrefixList[]=$PathPrefixItem;
+			}
 		}
 		return $PathPrefixList;
 	}
