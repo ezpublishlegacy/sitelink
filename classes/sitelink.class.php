@@ -332,6 +332,9 @@ class SiteLink
 				$URI=eZURI::instance($ParsedURL['path']);
 				$ParsedURL['path']=$URI->uriString();
 				$ParsedURL['user_parameters']=count($URI->userParameters())?$URI->userParameters():false;
+				if(strpos($ParsedURL['path'],'/')===false){
+					$ParsedURL['path'].='/';
+				}
 				// Fixes bug where when no scheme is specified the host is retured as a path.
 				if(!$ParsedURL['host'] && $MatchValue=preg_match_all(self::HOST_REGEXP,$ParsedURL['path'],$Matches)){
 					return array_merge($DefaultURL,parse_url('http://'.$ParsedURL['path']));
