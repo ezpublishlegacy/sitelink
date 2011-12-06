@@ -74,8 +74,10 @@ class SiteLink
 
 	function findObjectNode($object){
 		if(get_class($object)=='eZContentObject'){
-			foreach($object->assignedNodes() as $node){
-				if(in_array($this->rootNodeID,$node->pathArray())){return $node;}
+			$assigned_nodes = $object->assignedNodes();
+			array_unshift($assigned_nodes, $object->mainNode());
+			foreach($loopme as $node){
+				if($node->hiddenStatusString() != "Hidden" && in_array($this->rootNodeID,$node->pathArray())){return $node;}
 			}
 			return $object->mainNode();
 		}

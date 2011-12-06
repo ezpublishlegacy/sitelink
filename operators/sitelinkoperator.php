@@ -95,7 +95,7 @@
 			$HostMatchMapItems=SiteLink::hostMatchMapItems($SiteLink);
 			//match domain from current siteaccess if no server vars exist, ie if this is run from script
 			if (!$SiteLink->currentHost && $GLOBALS['eZCurrentAccess']) {
-				$SiteLink->currentHost = $HostMatchMapItems[$GLOBALS['eZCurrentAccess'][name]];
+				$SiteLink->currentHost = $HostMatchMapItems[$GLOBALS['eZCurrentAccess']["name"]];
 			}
 			$PathArray = $SiteLink->objectNode->pathArray();
 			foreach($HostMatchMapItems as $Name=>$Host){
