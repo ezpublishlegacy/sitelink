@@ -77,8 +77,6 @@ class SiteLink
 			$assigned_nodes = $object->assignedNodes();
 			array_unshift($assigned_nodes, $object->mainNode());
 			foreach($assigned_nodes as $node){
-				eZDebug::writeDebug($this->rootNodeID);
-				eZDebug::writeDebug($node->pathArray());
 				if($node->hiddenStatusString() != "Hidden" && in_array($this->rootNodeID,$node->pathArray())){return $node;}
 			}
 			return $object->mainNode();
