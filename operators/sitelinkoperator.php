@@ -121,6 +121,11 @@
 				$Matchup=0;
 				foreach($Match as $UseMatchItem){
 					if($UseMatchItem['locale']==$SiteLink->currentLocale){
+						if ($SiteLink->siteAccess['name'] == $UseMatchItem['siteaccess']) {
+							$UseMatchItem['host'] = '';
+							$UseMatch = $UseMatchItem;
+							break;
+						}
 						if(($CheckMatch=similar_text($SiteLink->currentHost, $UseMatchItem['host'])) > $Matchup){
 							$Matchup = $CheckMatch;
 							$UseMatch = $UseMatchItem;

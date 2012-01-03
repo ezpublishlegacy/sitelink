@@ -301,9 +301,6 @@ class SiteLink
 				if(!array_key_exists($HostItemArray[1],$HostMatchMapItems) || ($object && $object->currentHost==$HostItemArray[0] && $object->siteAccess['name']==$HostItemArray[1])){
 					$HostMatchMapItems[$HostItemArray[1]] = ($SiteAccess && array_key_exists($HostItemArray[1],$SiteAccess)) ? $SiteAccess[$HostItemArray[1]] : $HostItemArray[0];
 				}
-				if($object->siteAccess && $HostItemArray[1]==$object->siteAccess['name']){
-					$HostMatchMapItems[$HostItemArray[1]] = $HostItemArray[0];
-				}
 			}
 		}
 		return $HostMatchMapItems;
