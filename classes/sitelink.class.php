@@ -39,7 +39,7 @@ class SiteLink
 				$this->urlComponents['host']=parse_url(eZRSSExport::fetchByName(substr($operatorValue,strrpos($operatorValue,'/')+1))->URL,PHP_URL_HOST);
 			}
 			if($this->normalize()){
- 				$this->nodeID=$this->urlComponents['path']?eZURLAliasML::fetchNodeIDByPath($this->urlComponents['path']):false;
+ 				$this->nodeID=$this->findNodeID();
 			}
 		}
 
@@ -68,6 +68,20 @@ class SiteLink
 				}
 			}
 			return true;
+		}
+		return false;
+	}
+
+	function findNodeID(){
+		if($this->urlComponents['path'] && $NodeID=eZURLAliasML::fetchNodeIDByPath($this->urlComponents['path'])){
+			return $NodeID;
+		}
+		if($this->pathPrefix && strpos($this->urlComponents['path'], $this->pathPrefix)!==false){
+			$Path=str_replace("$this->pathPrefix/", '', $this->urlComponents['path']);
+			if($NodeID=eZURLAliasML::fetchNodeIDByPath($Path)){
+				$this->urlComponents['path']=$Path;
+				return $NodeID;
+			}
 		}
 		return false;
 	}
