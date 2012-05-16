@@ -130,7 +130,7 @@ class SiteLink
 				if(strripos(str_replace($urlComponents['scheme'].'://'.$urlComponents['host'],'',$operatorValue),'/'.$this->objectNode->urlAlias())===0 && (!$urlComponents['host'] || $this->currentHost==$urlComponents['host'])){$operatorValue='';}
 			}
 		}
-		if($this->parameters['quotes']){$operatorValue="\"$operatorValue\"";}
+		if($this->parameters['quotes'] && strpos($operatorValue, '"') !==0){$operatorValue="\"$operatorValue\"";}
 		return true;
 	}
 
