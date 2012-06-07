@@ -259,7 +259,7 @@ class SiteLink
 			if(!$node=eZContentObjectTreeNode::fetch($this->nodeID)){
 				return false;
 			}
-			$this->objectNode=$this->findObjectNode($object ? $object : $node->object());
+			$this->objectNode=$this->findObjectNode($object ? $object : $node);
 			if($this->nodeID!=$this->objectNode->NodeID){
 				$this->nodeID=$this->objectNode->NodeID;
 				$this->urlComponents=self::URLComponents($this->objectNode->pathWithNames());
