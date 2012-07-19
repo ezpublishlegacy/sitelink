@@ -82,8 +82,16 @@ class SiteLink
 		
 		$GLOBALS['eZContentLanguagePrioritizedLanguages'] = $temp_store;
 		
+		$sitelink_ini = eZINI::instance('sitelink.ini');
 		$ini = eZINI::instance();
-		foreach ($ini->variable('SiteAccessSettings', 'AvailableSiteAccessList') as $i) {
+		
+		if ($sitelink_ini->hasVariable('OperatorSettings', 'PrioritizedSiteaccessList')) {
+			$loopme = $sitelink_ini->variable('OperatorSettings', 'PrioritizedSiteaccessList');
+		} else {
+			$loopme = $ini->variable('SiteAccessSettings', 'AvailableSiteAccessList');
+		}		
+		
+		foreach ($loopme as $i) {
 			$ini_s = eZINI::instance("settings/siteaccess/$i/site.ini.append.php");
 			$trans_r = explode(';', $ini->variable('ContentSettings', 'TranslationList'));
 			if (in_array($operatorValue->CurrentLanguage, $trans_r)) {
