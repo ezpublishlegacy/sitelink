@@ -30,6 +30,7 @@ class SiteLink
 			if($this->objectNode=$this->findObjectNode($this->operatorValue)){
 				$this->nodeID=$this->objectNode->NodeID;
 				$this->urlComponents=self::URLComponents($this->objectNode->pathWithNames());
+				if (strpos($this->urlComponents['path'], 'content/view/full') !== false && is_object($operatorValue) && $operatorValue->CurrentLanguage) $this->switchSiteaccessForObjectLanguage($operatorValue);
 				$this->operatorValue=serialize($this->operatorValue);
 				$this->normalize();
 			}
@@ -70,6 +71,28 @@ class SiteLink
 			return true;
 		}
 		return false;
+	}
+	
+	function switchSiteaccessForObjectLanguage($operatorValue) {
+		$temp_store = $GLOBALS['eZContentLanguagePrioritizedLanguages'];
+		$lang = eZContentLanguage::fetchByLocale($operatorValue->CurrentLanguage);
+		array_push($GLOBALS['eZContentLanguagePrioritizedLanguages'], $lang);
+		
+		$this->urlComponents=self::URLComponents($this->objectNode->pathWithNames());
+		
+		$GLOBALS['eZContentLanguagePrioritizedLanguages'] = $temp_store;
+		
+		$ini = eZINI::instance();
+		foreach ($ini->variable('SiteAccessSettings', 'AvailableSiteAccessList') as $i) {
+			$ini_s = eZINI::instance("settings/siteaccess/$i/site.ini.append.php");
+			$trans_r = explode(';', $ini->variable('ContentSettings', 'TranslationList'));
+			if (in_array($operatorValue->CurrentLanguage, $trans_r)) {
+				$this->useSiteaccessOverride=true;
+				$this->useSiteaccess = $i;
+				break;
+			}
+		}
+		return true;
 	}
 
 	function findNodeID(){
