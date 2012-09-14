@@ -5,7 +5,7 @@
 	var $Operators;
 
 	function __construct(){
-		$this->Operators = array("sitelink","sitelink_path");
+		$this->Operators = array("sitelink","sitelink_path", "sitelink_roots");
 	}
 
 	function &operatorList(){
@@ -23,6 +23,7 @@
 				'parameters' => array('type'=>'mixed', 'required'=>false, 'default'=>true),
 				'absolute' => array('type'=>'mixed', 'required'=>false, 'default'=>$ForceAbsolute?true:false)
 				),
+			'sitelink_roots' => array(),
 			'sitelink_path'=>array(
 				'absolute'=>array('type'=>'mixed', 'required'=>false, 'default'=>$ForceAbsolute?true:false)
 				)
@@ -34,6 +35,18 @@
 		switch($operatorName){
 			case 'sitelink':{
 				return self::sitelink($operatorValue, $namedParameters);
+			}
+			case 'sitelink_roots':{
+				$SiteLink = new SiteLink(2,$namedParameters);
+				$HostMatchMapItems=SiteLink::hostMatchMapItems($SiteLink);
+				$HostRootNodes = array();
+				$sitelink_ini = eZINI::instance('sitelink.ini');
+				$siteaccess_path = ($sitelink_ini->hasSection('OperatorSettings')&&$sitelink_ini->hasVariable('OperatorSettings', 'SiteaccesDirPath'))?trim($sitelink_ini->variable('OperatorSettings','SiteaccesDirPath'), '/'):'settings/siteaccess';
+				
+				foreach($HostMatchMapItems as $Name=>$Host){
+					$HostRootNodes[] = SiteLink::configSetting('NodeSettings','RootNode','content.ini',"$siteaccess_path/$Name",true);
+				}
+				$operatorValue = $HostRootNodes;
 			}
 			case 'sitelink_path':{
 				return self::sitelink_path($operatorValue, $namedParameters);
@@ -98,8 +111,12 @@
 				$SiteLink->currentHost = $HostMatchMapItems[$GLOBALS['eZCurrentAccess']["name"]];
 			}
 			$PathArray = $SiteLink->objectNode->pathArray();
+			
+			$sitelink_ini = eZINI::instance('sitelink.ini');
+			$siteaccess_path = ($sitelink_ini->hasSection('OperatorSettings')&&$sitelink_ini->hasVariable('OperatorSettings', 'SiteaccesDirPath'))?trim($sitelink_ini->variable('OperatorSettings','SiteaccesDirPath'), '/'):'settings/siteaccess';
+			
 			foreach($HostMatchMapItems as $Name=>$Host){
-				$HostRootNode = SiteLink::configSetting('NodeSettings','RootNode','content.ini',"settings/siteaccess/$Name",true);
+				$HostRootNode = SiteLink::configSetting('NodeSettings','RootNode','content.ini',"$siteaccess_path/$Name",true);
 				if(!$HostRootNode){
 					$HostRootNode = SiteLink::configSetting('NodeSettings','RootNode','content.ini');
 				}
@@ -110,8 +127,8 @@
 							  'host'=>$Host,
 							  'siteaccess'=>$Name,
 							  'root_node_id'=>$HostRootNode,
-							  'path_prefix'=>SiteLink::configSetting('SiteAccessSettings','PathPrefix','site.ini',"settings/siteaccess/$Name",true),
-							  'locale'=>SiteLink::configSetting('RegionalSettings','Locale','site.ini',"settings/siteaccess/$Name",true)
+							  'path_prefix'=>SiteLink::configSetting('SiteAccessSettings','PathPrefix','site.ini',"$siteaccess_path/$Name",true),
+							  'locale'=>SiteLink::configSetting('RegionalSettings','Locale','site.ini',"$siteaccess_path/$Name",true)
 							);
 						}
 					}
