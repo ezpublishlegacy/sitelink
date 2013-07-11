@@ -137,9 +137,10 @@ class SiteLink
 					'path'=>preg_replace('/^([^\/].*)|^$/','/$1',preg_replace('/^'.str_replace('/','\\/',$this->pathPrefix).'\/*/','/',$this->urlComponents['path'])),
 					'user_parameters'=>$this->parameters['user_parameters']?$this->parameters['user_parameters']:$this->urlComponents['user_parameters']
 				));
+			$ini = eZINI::instance();
 			if($this->useSiteaccessOverride && isset($this->useSiteaccess)){
 				$urlComponents['path']='/'.$this->useSiteaccess.$urlComponents['path'];
-			} else if($this->siteAccess && isset($this->siteAccess['uri_part']) && count($this->siteAccess['uri_part']) && !$urlComponents['host']){
+			} else if($this->siteAccess && isset($this->siteAccess['uri_part']) && count($this->siteAccess['uri_part']) && !$urlComponents['host'] && $ini->variable('SiteSettings', 'DefaultAccess') != $this->siteAccess['uri_part'][0]){
 				$siteaccess_check = str_replace("//", "/", '/'.$urlComponents['path'].'/');
 				if(stripos($siteaccess_check,'/'.implode('/',$this->siteAccess['uri_part']).'/')!==0){
 					$urlComponents['path']='/'.implode('/',$this->siteAccess['uri_part']).$urlComponents['path'];
