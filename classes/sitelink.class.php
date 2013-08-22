@@ -13,17 +13,29 @@ class SiteLink
 	private $rootNodeID=false;
 
 	function __construct($operatorValue, $parameters){
+				
+		if (!isset($GLOBALS['sitelinks_base'])) {
+			$this->currentUser=eZUser::currentUser();
+			$this->pathPrefixList = self::pathPrefixList();
+			$this->AdminAccessList = self::AdminAccessList();
+			$this->isMultisite=(count($this->pathPrefixList) > 0) ? true : false;
+			$this->useSiteaccessOverride=self::useSiteaccessOverride($this);
+			$this->currentLocale=SiteLink::configSetting('RegionalSettings','Locale','site.ini');
+			$this->currentHost=eZSys::hostname();
+			$this->siteAccess=isset($GLOBALS['eZCurrentAccess']['name'])?$GLOBALS['eZCurrentAccess']:false;
+			$this->classSettings=false;
+			$this->rootNodeID=self::configSetting('NodeSettings','RootNode','content.ini');
+			
+			$GLOBALS['sitelinks_base'] = $this;
+			
+		} else {
+			foreach (get_object_vars($GLOBALS['sitelinks_base']) as $k => $v) {
+				$this->$k = $v;
+			} 
+		}
+		
 		self::parseParameters($this, $parameters);
-
-		$this->currentUser=eZUser::currentUser();
-		$this->isMultisite=self::isMultisite($this);
-		$this->useSiteaccessOverride=self::useSiteaccessOverride($this);
-		$this->currentLocale=SiteLink::configSetting('RegionalSettings','Locale','site.ini');
-		$this->currentHost=eZSys::hostname();
-		$this->siteAccess=isset($GLOBALS['eZCurrentAccess']['name'])?$GLOBALS['eZCurrentAccess']:false;
-		$this->classSettings=false;
-
-		$this->rootNodeID=self::configSetting('NodeSettings','RootNode','content.ini');
+				
 		$this->operatorValue=empty($operatorValue)?(int)$this->rootNodeID:$operatorValue;
 
 		if(is_object($this->operatorValue)){
@@ -41,9 +53,9 @@ class SiteLink
 			if($this->normalize()){
  				$this->nodeID=$this->findNodeID();
 			}
-		}
-
+		}		
 	}
+	
 	function debug($message, $label, $level=eZDebug::LEVEL_DEBUG){
 		if(isset($this->parameters['debug']) && $this->parameters['debug']){
 			switch($level){
@@ -101,6 +113,7 @@ class SiteLink
 
 	function hyperlink(&$operatorValue=false, $host=false){
 		if($this->urlComponents){
+			if (!isset($this->pathPrefix)) $this->pathPrefix = '';
 			$urlComponents = array_merge($this->urlComponents,array(
 					'host'=>$host?$host:$this->urlComponents['host'],
 					'path'=>preg_replace('/^([^\/].*)|^$/','/$1',preg_replace('/^'.str_replace('/','\\/',$this->pathPrefix).'\/*/','/',$this->urlComponents['path'])),
@@ -191,7 +204,8 @@ class SiteLink
 		if($this->urlComponents){
 			if($this->isMultisite && $this->urlComponents['path'] && !$this->urlComponents['host']){
 				if($this->urlComponents['path']){
-					foreach(self::pathPrefixList() as $PathPrefix){
+					$this->pathPrefix = '';
+					foreach($this->pathPrefixList as $PathPrefix){
 						if(stripos($this->urlComponents['path'],"$PathPrefix/")!==false){
 							$this->pathPrefix=$PathPrefix;
 							break;
@@ -318,15 +332,15 @@ class SiteLink
 				}
 			}
 		}
-		return $HostMatchMapItems;
-	}
-
-	static function isMultisite(&$object=false){
-		$isMultisite=in_array('host',explode(';',self::configSetting('SiteAccessSettings','MatchOrder','site.ini')));
-		if($object){
-			$object->pathPrefix=self::configSetting('SiteAccessSettings','PathPrefix','site.ini');
+		if(($MapItems=SiteLink::configSetting('SiteAccessSettings','HostUriMatchMapItems','site.ini')) && is_array($MapItems)){
+			foreach($MapItems as $HostItem){
+				$HostItemArray=explode(';',$HostItem);
+				if(!array_key_exists($HostItemArray[2],$HostMatchMapItems) || ($object && $object->currentHost==$HostItemArray[0] && $object->siteAccess['name']==$HostItemArray[2])){
+					$HostMatchMapItems[$HostItemArray[2]] = ($SiteAccess && array_key_exists($HostItemArray[2],$SiteAccess)) ? $SiteAccess[$HostItemArray[2]] : $HostItemArray[0].'/'.$HostItemArray[2];
+				}
+			}
 		}
-		return $isMultisite;
+		return $HostMatchMapItems;
 	}
 
 	static function pathPrefixList(){
@@ -338,6 +352,17 @@ class SiteLink
 			}
 		}
 		return $PathPrefixList;
+	}
+	
+	static function AdminAccessList(){
+		$AdminAccessList=array();
+		foreach(eZSiteAccess::siteAccessList() as $key=>$value){
+			$AdditionalDesigns=self::configSetting('DesignSettings','AdditionalSiteDesignList','site.ini','settings/siteaccess/'.$value['name'],true);
+			foreach ($AdditionalDesigns as $a) {
+				if ($a == 'admin') $AdminAccessList[] = $value['name'];
+			}
+		}
+		return $AdminAccessList;
 	}
 
 	// Currently a URI in the form: content/view/full/43, will not be converted into a correct path.

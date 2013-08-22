@@ -98,18 +98,34 @@
 				$SiteLink->currentHost = $HostMatchMapItems[$GLOBALS['eZCurrentAccess']["name"]];
 			}
 			$PathArray = $SiteLink->objectNode->pathArray();
+			
+			$sitelink_ini = eZINI::instance('sitelink.ini');
+			$siteaccess_path = ($sitelink_ini->hasSection('OperatorSettings')&&$sitelink_ini->hasVariable('OperatorSettings', 'SiteaccesDirPath'))?trim($sitelink_ini->variable('OperatorSettings','SiteaccesDirPath'), '/'):'settings/siteaccess';
+			
 			foreach($HostMatchMapItems as $Name=>$Host){
+				if (in_array($Name, $SiteLink->AdminAccessList)) continue;
 				$HostRootNode = SiteLink::configSetting('NodeSettings','RootNode','content.ini',"settings/siteaccess/$Name",true);
 				if(!$HostRootNode){
 					$HostRootNode = SiteLink::configSetting('NodeSettings','RootNode','content.ini');
 				}
 				if(array_search($HostRootNode,$PathArray)!==false){
+					$top_depth = 0;
+					$top_depth_key = false;
 					foreach(array_reverse($PathArray) as $PathNodeID){
 						if($PathNodeID==$HostRootNode){
-							$Match[$Host]=array(
+							$mydepth = SiteLink::configSetting('SiteSettings','RootNodeDepth','site.ini',"$siteaccess_path/$Name",true);
+							if ($mydepth === false) $mydepth = 0;
+							if ($mydepth > $top_depth) {
+								$top_depth = $my_depth;
+								$top_depth_key = $Name;
+							} elseif ($mydepth == $top_depth) {
+								$top_depth_key = false;
+							}
+							$Match[$Name]=array(
 							  'host'=>$Host,
 							  'siteaccess'=>$Name,
 							  'root_node_id'=>$HostRootNode,
+							  'root_node_depth' => $mydepth,
 							  'path_prefix'=>SiteLink::configSetting('SiteAccessSettings','PathPrefix','site.ini',"settings/siteaccess/$Name",true),
 							  'locale'=>SiteLink::configSetting('RegionalSettings','Locale','site.ini',"settings/siteaccess/$Name",true)
 							);
@@ -117,7 +133,11 @@
 					}
 				}
 			}
-			if(!($UseMatch=isset($Match[$SiteLink->currentHost])?$Match[$SiteLink->currentHost]:false)){
+			
+			if ($top_depth_key) {
+				$UseMatch = $Match[$top_depth_key];
+			} else {
+				
 				$Matchup=0;
 				foreach($Match as $UseMatchItem){
 					if($UseMatchItem['locale']==$SiteLink->currentLocale){
@@ -135,6 +155,7 @@
 				if(!$UseMatch){
 					eZDebug::writeWarning('No host matches found have been found.','SiteLink Operator: PHP Class Warning');
 				}
+				
 			}
 			return $SiteLink->hyperlink($operatorValue,$UseMatch?$UseMatch['host']:false);
 		}
