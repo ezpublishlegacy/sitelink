@@ -26,7 +26,7 @@ class SiteLink
 			$this->classSettings=false;
 			$this->rootNodeID=self::configSetting('NodeSettings','RootNode','content.ini');
 			
-			$GLOBALS['sitelinks_base'] = $this;
+			$GLOBALS['sitelinks_base'] = clone $this;
 			
 		} else {
 			foreach (get_object_vars($GLOBALS['sitelinks_base']) as $k => $v) {
