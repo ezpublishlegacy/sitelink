@@ -224,7 +224,7 @@ class SiteLink
 			if($this->isMultisite && $this->urlComponents['path'] && !$this->urlComponents['host']){
 				if($this->urlComponents['path']){
 					foreach(self::pathPrefixList() as $PathPrefix){
-						if(stripos($this->urlComponents['path'],"$PathPrefix/")!==false){
+						if(stripos($this->urlComponents['path'],"$PathPrefix/") === 1){
 							$this->pathPrefix=$PathPrefix;
 							break;
 						}
