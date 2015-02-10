@@ -75,6 +75,7 @@ class SiteLink
 	function findObjectNode($object){
 		if(get_class($object)=='eZContentObject'){
 			$assigned_nodes = $object->assignedNodes();
+			if (!is_object($assigned_nodes)) return false;
 			array_unshift($assigned_nodes, $object->mainNode());
 			foreach($assigned_nodes as $node){
 				if($node->hiddenStatusString() != "Hidden" && in_array($this->rootNodeID,$node->pathArray())){return $node;}
@@ -247,6 +248,9 @@ class SiteLink
 			$this->objectNode=$this->findObjectNode($object ? $object : $node->object());
 			if($this->nodeID!=$this->objectNode->NodeID){
 				$this->nodeID=$this->objectNode->NodeID;
+				if (!is_object($this->objectNode)) {
+				    return false;
+				}
 				$this->urlComponents=self::URLComponents($this->objectNode->pathWithNames());
 				$this->normalize();
 			}

@@ -97,6 +97,9 @@
 			if (!$SiteLink->currentHost && $GLOBALS['eZCurrentAccess']) {
 				$SiteLink->currentHost = $HostMatchMapItems[$GLOBALS['eZCurrentAccess']["name"]];
 			}
+			if (!is_object($SiteLink->objectNode)) {
+			    return false;
+			}
 			$PathArray = $SiteLink->objectNode->pathArray();
 			foreach($HostMatchMapItems as $Name=>$Host){
 				$HostRootNode = SiteLink::configSetting('NodeSettings','RootNode','content.ini',"settings/siteaccess/$Name",true);
