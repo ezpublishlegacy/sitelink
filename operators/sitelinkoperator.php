@@ -5,7 +5,7 @@
 	var $Operators;
 
 	function __construct(){
-		$this->Operators = array("sitelink","sitelink_path", "sitelink_roots");
+		$this->Operators = array("sitelink","sitelink_path", "sitelink_roots", "sitelink_siteaccess");
 	}
 
 	function &operatorList(){
@@ -24,6 +24,7 @@
 				'absolute' => array('type'=>'mixed', 'required'=>false, 'default'=>$ForceAbsolute?true:false)
 				),
 			'sitelink_roots' => array(),
+			'sitelink_siteaccess' => array(),
 			'sitelink_path'=>array(
 				'absolute'=>array('type'=>'mixed', 'required'=>false, 'default'=>$ForceAbsolute?true:false)
 				)
@@ -32,9 +33,23 @@
 
 	// Currently a URI in the form: content/view/full/43, will not be converted into a correct path and therefore node.
 	function modify(&$tpl, &$operatorName, &$operatorParameters, &$rootNamespace, &$currentNamespace, &$operatorValue, &$namedParameters){
+
 		switch($operatorName){
 			case 'sitelink':{
 				return self::sitelink($operatorValue, $namedParameters);
+			}
+			case 'sitelink_siteaccess':{
+				$SiteLink = self::sitelink($operatorValue, $namedParameters);
+				$out = '';
+				$topDepth = 0;
+				foreach ($namedParameters['UseMatch'] as $UseMatch) {
+				    if ($UseMatch['depth'] >= $topDepth) {
+				        $topDepth = $UseMatch['depth'];
+				        $out = $UseMatch['siteaccess'];
+				    }
+				}
+				$operatorValue = $out;
+				return true;
 			}
 			case 'sitelink_roots':{
 				$SiteLink = new SiteLink(2,$namedParameters);
@@ -121,11 +136,12 @@
 					$HostRootNode = SiteLink::configSetting('NodeSettings','RootNode','content.ini');
 				}
 				if(array_search($HostRootNode,$PathArray)!==false){
-					foreach(array_reverse($PathArray) as $PathNodeID){
+					foreach(array_reverse($PathArray) as $loopCount => $PathNodeID){
 						if($PathNodeID==$HostRootNode){
 							$Match[$Host]=array(
 							  'host'=>$Host,
 							  'siteaccess'=>$Name,
+							  'depth' => count($PathArray) - $loopCount,
 							  'root_node_id'=>$HostRootNode,
 							  'path_prefix'=>SiteLink::configSetting('SiteAccessSettings','PathPrefix','site.ini',"$siteaccess_path/$Name",true),
 							  'locale'=>SiteLink::configSetting('RegionalSettings','Locale','site.ini',"$siteaccess_path/$Name",true)
@@ -153,10 +169,16 @@
 					eZDebug::writeWarning('No host matches found have been found.','SiteLink Operator: PHP Class Warning');
 				}
 			}
-			return $SiteLink->hyperlink($operatorValue,$UseMatch?$UseMatch['host']:false);
+			
+			$res = $SiteLink->hyperlink($operatorValue,$UseMatch?$UseMatch['host']:false);
+			$namedParameters['UseMatch'] = $Match;
+			return $res;
 		}
-
-		return $SiteLink->hyperlink($operatorValue);
+        
+		$res = $SiteLink->hyperlink($operatorValue);
+		$namedParameters['UseMatch'] = $Match;
+		return $res;
+		
 	}
 
 	static function sitelink_path(&$operatorValue, &$namedParameters){
