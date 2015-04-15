@@ -43,6 +43,7 @@
 				$out = '';
 				$topDepth = 0;
 				foreach ($namedParameters['UseMatch'] as $UseMatch) {
+				    if (strpos($UseMatch['siteaccess'], 'admin') !== false) $UseMatch['depth'] = $UseMatch['depth'] - 0.5;
 				    if ($UseMatch['depth'] >= $topDepth) {
 				        $topDepth = $UseMatch['depth'];
 				        $out = $UseMatch['siteaccess'];
